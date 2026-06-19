@@ -1,16 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useApp } from "@/context/AppContext";
+import { useState } from "react";
+import { useApp, type User } from "@/context/AppContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Coins, Mail, Send, Calendar, TrendingUp, TrendingDown, Megaphone, Users as UsersIcon, Target } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Coins, Mail, Send, Calendar, TrendingUp, TrendingDown, Megaphone, Users as UsersIcon, Target, Network, MessageSquare } from "lucide-react";
+import { EmployeeCard } from "@/components/EmployeeCard";
+import { OrgChart } from "@/components/OrgChart";
 
 export const Route = createFileRoute("/_app/dashboard")({
   component: Dashboard,
 });
 
 function Dashboard() {
-  const { currentUser, users, announcements } = useApp();
+  const { currentUser, users, announcements, addComment } = useApp();
+  const [selected, setSelected] = useState<User | null>(null);
+  const [draft, setDraft] = useState<Record<string, string>>({});
+
   if (!currentUser) return null;
 
   const team = users.filter((u) => u.department === currentUser.department && u.id !== currentUser.id);
@@ -25,7 +33,6 @@ function Dashboard() {
       </header>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Profile */}
         <Card className="lg:col-span-1">
           <CardContent className="p-6 text-center">
             <img src={currentUser.avatar} alt="" className="h-24 w-24 rounded-full mx-auto ring-4 ring-accent" />
@@ -42,7 +49,6 @@ function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Balance */}
         <Card className="lg:col-span-2 bg-gradient-to-br from-brand to-primary text-primary-foreground overflow-hidden relative">
           <CardContent className="p-8">
             <div className="text-sm uppercase tracking-wider opacity-80">Мой баланс</div>
@@ -60,8 +66,17 @@ function Dashboard() {
         </Card>
       </div>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Network className="h-5 w-5 text-brand" /> Структура компании</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-xs text-muted-foreground mb-4">Кликните на сотрудника, чтобы открыть его карточку</p>
+          <OrgChart onSelect={setSelected} />
+        </CardContent>
+      </Card>
+
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Transactions */}
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Coins className="h-5 w-5 text-coin" /> История транзакций</CardTitle>
@@ -92,7 +107,6 @@ function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* KPI */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Target className="h-5 w-5 text-brand" /> Мои задачи / KPI</CardTitle>
@@ -112,48 +126,88 @@ function Dashboard() {
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><UsersIcon className="h-5 w-5 text-brand" /> Моя команда — {currentUser.department}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {team.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Вы пока единственный сотрудник отдела</p>
-            ) : (
-              <ul className="space-y-3">
-                {team.map((m) => (
-                  <li key={m.id} className="flex items-center gap-3">
-                    <img src={m.avatar} className="h-10 w-10 rounded-full" alt="" />
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">{m.name}</div>
-                      <div className="text-xs text-muted-foreground">{m.position}</div>
-                    </div>
-                    <Badge variant="outline">{m.balance} ⭐</Badge>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Megaphone className="h-5 w-5 text-brand" /> Объявления компании</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-4">
-              {announcements.map((a) => (
-                <li key={a.id} className="border-l-2 border-brand pl-3">
-                  <div className="text-sm font-semibold">{a.title}</div>
-                  <div className="text-xs text-muted-foreground mb-1">{new Date(a.date).toLocaleDateString("ru-RU")}</div>
-                  <div className="text-sm text-foreground/80">{a.body}</div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><UsersIcon className="h-5 w-5 text-brand" /> Моя команда — {currentUser.department}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {team.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Вы пока единственный сотрудник отдела</p>
+          ) : (
+            <ul className="space-y-3">
+              {team.map((m) => (
+                <li key={m.id} className="flex items-center gap-3">
+                  <img src={m.avatar} className="h-10 w-10 rounded-full" alt="" />
+                  <div className="flex-1">
+                    <div className="text-sm font-medium">{m.name}</div>
+                    <div className="text-xs text-muted-foreground">{m.position}</div>
+                  </div>
+                  <Badge variant="outline">{m.balance} ⭐</Badge>
                 </li>
               ))}
             </ul>
-          </CardContent>
-        </Card>
-      </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Megaphone className="h-5 w-5 text-brand" /> Объявления компании</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-6">
+            {announcements.map((a) => (
+              <li key={a.id} className="border-l-2 border-brand pl-4">
+                <div className="text-sm font-semibold">{a.title}</div>
+                <div className="text-xs text-muted-foreground mb-1">{new Date(a.date).toLocaleDateString("ru-RU")}</div>
+                <div className="text-sm text-foreground/80">{a.body}</div>
+
+                <div className="mt-3 space-y-2">
+                  {a.comments.length > 0 && (
+                    <ul className="space-y-2">
+                      {a.comments.map((c) => (
+                        <li key={c.id} className="flex gap-2 text-sm bg-muted/40 rounded-lg p-2">
+                          <img src={c.authorAvatar} className="h-7 w-7 rounded-full shrink-0" alt="" />
+                          <div className="min-w-0">
+                            <div className="text-xs">
+                              <span className="font-medium">{c.authorName}</span>
+                              <span className="text-muted-foreground"> · {new Date(c.date).toLocaleString("ru-RU")}</span>
+                            </div>
+                            <div className="text-sm">{c.body}</div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="flex gap-2 items-start">
+                    <img src={currentUser.avatar} className="h-7 w-7 rounded-full shrink-0 mt-1" alt="" />
+                    <Textarea
+                      value={draft[a.id] ?? ""}
+                      onChange={(e) => setDraft({ ...draft, [a.id]: e.target.value })}
+                      placeholder="Оставьте комментарий..."
+                      rows={2}
+                      className="text-sm"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        const body = (draft[a.id] ?? "").trim();
+                        if (!body) return;
+                        addComment(a.id, body);
+                        setDraft({ ...draft, [a.id]: "" });
+                      }}
+                    >
+                      <MessageSquare className="h-4 w-4 mr-1" /> Отправить
+                    </Button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+
+      <EmployeeCard user={selected} open={!!selected} onOpenChange={(o) => !o && setSelected(null)} />
     </div>
   );
 }

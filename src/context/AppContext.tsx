@@ -448,7 +448,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         position: data.position,
         telegram: data.telegram,
         startDate: data.startDate || today().slice(0, 10),
-        avatar: avatarFor(data.name, 245),
+        avatar: data.avatar || avatarFor(data.name, 245),
         balance: data.balance ?? 100,
         managerId: data.managerId ?? "u-admin",
         bio: data.bio,
@@ -459,9 +459,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setUsers((p) => [...p, newUser]);
     },
     updateUser: (id, patch) => setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...patch } : u))),
+    deleteUser: (id) => {
+      setUsers((prev) => prev.filter((u) => u.id !== id).map((u) => (u.managerId === id ? { ...u, managerId: "u-admin" } : u)));
+      if (currentUserId === id) setCurrentUserId(null);
+    },
     addJob: (j) => setJobs((p) => [...p, { ...j, id: "j-" + Math.random().toString(36).slice(2, 7) }]),
+    updateJob: (id, patch) => setJobs((prev) => prev.map((j) => (j.id === id ? { ...j, ...patch } : j))),
+    deleteJob: (id) => setJobs((prev) => prev.filter((j) => j.id !== id)),
     updateProduct: (id, patch) => setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p))),
     addProduct: (p) => setProducts((prev) => [...prev, { ...p, id: "p-" + Math.random().toString(36).slice(2, 7) }]),
+    deleteProduct: (id) => setProducts((prev) => prev.filter((p) => p.id !== id)),
     addComment: (announcementId, body) => {
       if (!currentUser || !body.trim()) return;
       const c: Comment = {
@@ -474,6 +481,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
       setAnnouncements((prev) => prev.map((a) => (a.id === announcementId ? { ...a, comments: [...a.comments, c] } : a)));
     },
+    addAnnouncement: ({ title, body }) => {
+      setAnnouncements((prev) => [
+        { id: "a-" + Math.random().toString(36).slice(2, 7), title, body, date: today().slice(0, 10), comments: [] },
+        ...prev,
+      ]);
+    },
+    updateAnnouncement: (id, patch) => setAnnouncements((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a))),
+    deleteAnnouncement: (id) => setAnnouncements((prev) => prev.filter((a) => a.id !== id)),
   };
 
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;

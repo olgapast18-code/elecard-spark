@@ -26,6 +26,7 @@ function AppLayout() {
     { to: "/team", label: "Наша команда", icon: Users },
     { to: "/shop", label: "Магазин бонусов", icon: Store },
     { to: "/jobs", label: "Карта должностей", icon: BriefcaseBusiness },
+    { to: "/profile", label: "Моя карточка", icon: UserCircle },
     ...(isAdmin ? [{ to: "/admin", label: "Админ-панель", icon: ShieldCheck }] : []),
   ] as const;
 

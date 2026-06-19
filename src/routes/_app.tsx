@@ -2,6 +2,8 @@ import { createFileRoute, Outlet, useNavigate, Link, useRouterState } from "@tan
 import { useEffect } from "react";
 import { useApp } from "@/context/AppContext";
 import { LayoutDashboard, Store, BriefcaseBusiness, Users, LogOut, Rocket, Coins, ShieldCheck } from "lucide-react";
+// keep Users import referenced
+void Users;
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -22,6 +24,7 @@ function AppLayout() {
 
   const items = [
     { to: "/dashboard", label: "Личный кабинет", icon: LayoutDashboard },
+    { to: "/team", label: "Наша команда", icon: Users },
     { to: "/shop", label: "Магазин бонусов", icon: Store },
     { to: "/jobs", label: "Карта должностей", icon: BriefcaseBusiness },
     ...(isAdmin ? [{ to: "/admin", label: "Админ-панель", icon: ShieldCheck }] : []),
@@ -93,5 +96,3 @@ function AppLayout() {
   );
 }
 
-// Avoid unused import warning
-void Users;

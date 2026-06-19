@@ -1,11 +1,7 @@
-import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { useApp } from "@/context/AppContext";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
-  component: Index,
+  beforeLoad: () => {
+    throw redirect({ to: "/auth" });
+  },
 });
-
-function Index() {
-  const { currentUser } = useApp();
-  return <Navigate to={currentUser ? "/dashboard" : "/auth"} />;
-}

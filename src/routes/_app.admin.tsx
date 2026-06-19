@@ -124,8 +124,18 @@ function EmployeesPanel({ users, updateUser, addUser }: { users: ReturnType<type
 }
 
 function EmployeeRow({ user, onSave }: { user: ReturnType<typeof useApp>["users"][number]; onSave: (p: Partial<ReturnType<typeof useApp>["users"][number]>) => void }) {
+  const { users } = useApp();
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState({ name: user.name, position: user.position, department: user.department, balance: user.balance });
+  const [draft, setDraft] = useState({
+    name: user.name,
+    position: user.position,
+    department: user.department,
+    balance: user.balance,
+    bio: user.bio ?? "",
+    responsibilities: (user.responsibilities ?? []).join(", "),
+    managerId: user.managerId ?? "",
+  });
+  const managers = users.filter((u) => u.id !== user.id);
   return (
     <tr className="border-b last:border-0">
       <td className="py-3 pr-4 flex items-center gap-3"><img src={user.avatar} className="h-8 w-8 rounded-full" alt="" />{user.name}</td>
@@ -133,13 +143,13 @@ function EmployeeRow({ user, onSave }: { user: ReturnType<typeof useApp>["users"
       <td className="pr-4">{user.position}</td>
       <td className="pr-4 font-semibold flex items-center gap-1"><Coins className="h-4 w-4 text-coin" />{user.balance}</td>
       <td>
-        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setDraft({ name: user.name, position: user.position, department: user.department, balance: user.balance }); }}>
+        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setDraft({ name: user.name, position: user.position, department: user.department, balance: user.balance, bio: user.bio ?? "", responsibilities: (user.responsibilities ?? []).join(", "), managerId: user.managerId ?? "" }); }}>
           <DialogTrigger asChild>
             <Button size="sm" variant="ghost"><Pencil className="h-4 w-4" /></Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle>Редактировать сотрудника</DialogTitle></DialogHeader>
-            <div className="space-y-3">
+            <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
               <Field label="ФИО"><Input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} /></Field>
               <Field label="Должность"><Input value={draft.position} onChange={(e) => setDraft({ ...draft, position: e.target.value })} /></Field>
               <Field label="Отдел">
@@ -148,8 +158,30 @@ function EmployeeRow({ user, onSave }: { user: ReturnType<typeof useApp>["users"
                   <SelectContent>{DEPARTMENTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
                 </Select>
               </Field>
+              <Field label="Руководитель">
+                <Select value={draft.managerId || "none"} onValueChange={(v) => setDraft({ ...draft, managerId: v === "none" ? "" : v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— Без руководителя —</SelectItem>
+                    {managers.map((m) => <SelectItem key={m.id} value={m.id}>{m.name} — {m.position}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field label="О себе"><Textarea rows={3} value={draft.bio} onChange={(e) => setDraft({ ...draft, bio: e.target.value })} /></Field>
+              <Field label="Обязанности (через запятую)"><Textarea rows={2} value={draft.responsibilities} onChange={(e) => setDraft({ ...draft, responsibilities: e.target.value })} /></Field>
               <Field label="Баланс"><Input type="number" value={draft.balance} onChange={(e) => setDraft({ ...draft, balance: +e.target.value })} /></Field>
-              <Button className="w-full" onClick={() => { onSave(draft); setOpen(false); }}>Сохранить</Button>
+              <Button className="w-full" onClick={() => {
+                onSave({
+                  name: draft.name,
+                  position: draft.position,
+                  department: draft.department,
+                  balance: draft.balance,
+                  bio: draft.bio,
+                  responsibilities: draft.responsibilities.split(",").map((s) => s.trim()).filter(Boolean),
+                  managerId: draft.managerId || null,
+                });
+                setOpen(false);
+              }}>Сохранить</Button>
             </div>
           </DialogContent>
         </Dialog>

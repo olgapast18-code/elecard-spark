@@ -25,6 +25,9 @@ export type User = {
   balance: number;
   transactions: Transaction[];
   kpi: { title: string; progress: number }[];
+  bio?: string;
+  responsibilities?: string[];
+  managerId?: string | null;
 };
 
 export type Product = {
@@ -47,14 +50,25 @@ export type Job = {
   careerTrack: string[];
 };
 
+export type Comment = {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar: string;
+  body: string;
+  date: string;
+};
+
 export type Announcement = {
   id: string;
   title: string;
   body: string;
   date: string;
+  comments: Comment[];
 };
 
 export const DEPARTMENTS = [
+  "Руководство",
   "Разработка",
   "HR",
   "Маркетинг",
@@ -78,16 +92,24 @@ const today = () => new Date().toISOString();
 const seedUsers: User[] = [
   {
     id: "u-admin",
-    name: "Мария Иванова",
-    email: "hr@elecard.space",
-    password: "admin",
+    name: "Ольга Пастушкова",
+    email: "olga.pastushkova@elecard.ru",
+    password: "214813991ola",
     role: "admin",
-    department: "HR",
+    department: "Руководство",
     position: "HR Director",
-    telegram: "@maria_hr",
-    startDate: "2019-03-12",
-    avatar: avatarFor("Мария Иванова"),
-    balance: 999,
+    telegram: "@olga_pastushkova",
+    startDate: "2017-01-15",
+    avatar: avatarFor("Ольга Пастушкова", 0x1e3a5f),
+    balance: 1500,
+    managerId: null,
+    bio: "Отвечаю за развитие команды и культуру ElecardSpace. 9 лет в HR, кандидат психологических наук.",
+    responsibilities: [
+      "Стратегия развития персонала",
+      "Найм ключевых ролей",
+      "Программы обучения и адаптации",
+      "Корпоративная культура",
+    ],
     kpi: [
       { title: "Найм Q4", progress: 72 },
       { title: "Onboarding 2026", progress: 45 },
@@ -99,59 +121,102 @@ const seedUsers: User[] = [
   {
     id: "u-dev",
     name: "Алексей Петров",
-    email: "alex@elecard.space",
+    email: "alex@elecard.ru",
     password: "dev",
     role: "employee",
     department: "Разработка",
-    position: "Senior Frontend Developer",
+    position: "Tech Lead",
     telegram: "@alex_dev",
     startDate: "2021-08-02",
     avatar: avatarFor("Алексей Петров", 230),
     balance: 450,
+    managerId: "u-admin",
+    bio: "Frontend-инженер с 8-летним опытом. Люблю производительный React и менторинг.",
+    responsibilities: ["Архитектура фронтенда", "Релизы продукта", "Менторинг команды"],
     kpi: [
       { title: "Релиз v3.2", progress: 80 },
       { title: "Код-ревью", progress: 60 },
       { title: "Менторинг джунов", progress: 35 },
     ],
     transactions: [
-      { id: "t2", type: "credit", amount: 150, reason: "Успешное закрытие спринта", from: "Мария Иванова", date: "2026-06-01" },
-      { id: "t3", type: "credit", amount: 300, reason: "Релиз продукта", from: "Мария Иванова", date: "2026-05-15" },
+      { id: "t2", type: "credit", amount: 150, reason: "Успешное закрытие спринта", from: "Ольга Пастушкова", date: "2026-06-01" },
+      { id: "t3", type: "credit", amount: 300, reason: "Релиз продукта", from: "Ольга Пастушкова", date: "2026-05-15" },
     ],
   },
   {
     id: "u-design",
     name: "Ольга Смирнова",
-    email: "olga@elecard.space",
+    email: "smirnova@elecard.ru",
     password: "design",
     role: "employee",
     department: "Дизайн",
-    position: "Product Designer",
+    position: "Lead Product Designer",
     telegram: "@olga_d",
     startDate: "2022-11-20",
     avatar: avatarFor("Ольга Смирнова", 280),
     balance: 220,
+    managerId: "u-admin",
+    bio: "Дизайнер продуктов, фанат дизайн-систем и доступности.",
+    responsibilities: ["UX-исследования", "Дизайн-система", "Прототипирование"],
     kpi: [{ title: "Редизайн портала", progress: 55 }],
     transactions: [
-      { id: "t4", type: "credit", amount: 100, reason: "За помощь в организации мероприятия", from: "Мария Иванова", date: "2026-05-20" },
+      { id: "t4", type: "credit", amount: 100, reason: "За помощь в организации мероприятия", from: "Ольга Пастушкова", date: "2026-05-20" },
       { id: "t5", type: "debit", amount: 80, reason: "Покупка: Брендированная кружка", date: "2026-05-25" },
     ],
   },
   {
     id: "u-analytics",
     name: "Дмитрий Кузнецов",
-    email: "dmitry@elecard.space",
+    email: "dmitry@elecard.ru",
     password: "analytics",
     role: "employee",
     department: "Аналитика",
-    position: "Data Analyst",
+    position: "Lead Data Analyst",
     telegram: "@dk_data",
     startDate: "2023-02-14",
     avatar: avatarFor("Дмитрий Кузнецов", 200),
     balance: 130,
+    managerId: "u-admin",
+    bio: "Перевожу данные в решения. Эксперт по продуктовой аналитике.",
+    responsibilities: ["Дашборды", "A/B тесты", "Прогнозные модели"],
     kpi: [{ title: "Дашборд продаж", progress: 90 }],
     transactions: [
-      { id: "t6", type: "credit", amount: 130, reason: "Внедрение метрики LTV", from: "Мария Иванова", date: "2026-06-05" },
+      { id: "t6", type: "credit", amount: 130, reason: "Внедрение метрики LTV", from: "Ольга Пастушкова", date: "2026-06-05" },
     ],
+  },
+  {
+    id: "u-dev2",
+    name: "Иван Соколов",
+    email: "ivan@elecard.ru",
+    password: "dev2",
+    role: "employee",
+    department: "Разработка",
+    position: "Frontend Developer",
+    startDate: "2024-04-01",
+    avatar: avatarFor("Иван Соколов", 210),
+    balance: 90,
+    managerId: "u-dev",
+    bio: "Middle разработчик, увлекаюсь анимациями и DX.",
+    responsibilities: ["Разработка фич", "Поддержка дизайн-системы"],
+    kpi: [{ title: "Спринт #14", progress: 60 }],
+    transactions: [],
+  },
+  {
+    id: "u-designjr",
+    name: "Анна Лебедева",
+    email: "anna@elecard.ru",
+    password: "designjr",
+    role: "employee",
+    department: "Дизайн",
+    position: "Product Designer",
+    startDate: "2024-09-10",
+    avatar: avatarFor("Анна Лебедева", 290),
+    balance: 60,
+    managerId: "u-design",
+    bio: "Дизайнер интерфейсов, люблю иллюстрации.",
+    responsibilities: ["Макеты", "Иллюстрации"],
+    kpi: [{ title: "Онбординг", progress: 80 }],
+    transactions: [],
   },
 ];
 
@@ -250,9 +315,9 @@ const seedJobs: Job[] = [
 ];
 
 const seedAnnouncements: Announcement[] = [
-  { id: "a1", title: "Тимбилдинг 28 июня", body: "Всех ждём на загородной базе, автобусы от офиса в 10:00.", date: "2026-06-15" },
-  { id: "a2", title: "Запуск ElecardSpace v3.2", body: "Поздравляем команду разработки с успешным релизом!", date: "2026-06-10" },
-  { id: "a3", title: "Открыт магазин бонусов", body: "Тратьте накопленные ElecardBonus на мерч и обучение.", date: "2026-06-01" },
+  { id: "a1", title: "Тимбилдинг 28 июня", body: "Всех ждём на загородной базе, автобусы от офиса в 10:00.", date: "2026-06-15", comments: [] },
+  { id: "a2", title: "Запуск ElecardSpace v3.2", body: "Поздравляем команду разработки с успешным релизом!", date: "2026-06-10", comments: [] },
+  { id: "a3", title: "Открыт магазин бонусов", body: "Тратьте накопленные ElecardBonus на мерч и обучение.", date: "2026-06-01", comments: [] },
 ];
 
 type Ctx = {
@@ -274,6 +339,7 @@ type Ctx = {
   addJob: (j: Omit<Job, "id">) => void;
   updateProduct: (id: string, patch: Partial<Product>) => void;
   addProduct: (p: Omit<Product, "id">) => void;
+  addComment: (announcementId: string, body: string) => void;
 };
 
 const AppCtx = createContext<Ctx | null>(null);
@@ -282,7 +348,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<User[]>(seedUsers);
   const [products, setProducts] = useState<Product[]>(seedProducts);
   const [jobs, setJobs] = useState<Job[]>(seedJobs);
-  const [announcements] = useState<Announcement[]>(seedAnnouncements);
+  const [announcements, setAnnouncements] = useState<Announcement[]>(seedAnnouncements);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const currentUser = useMemo(
@@ -317,6 +383,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         startDate: today().slice(0, 10),
         avatar: avatarFor(data.name, 245),
         balance: 100,
+        managerId: "u-admin",
         transactions: [
           { id: "t-" + Math.random().toString(36).slice(2, 7), type: "credit", amount: 100, reason: "Приветственный бонус", from: "ElecardSpace", date: today() },
         ],
@@ -376,6 +443,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         startDate: data.startDate || today().slice(0, 10),
         avatar: avatarFor(data.name, 245),
         balance: data.balance ?? 100,
+        managerId: data.managerId ?? "u-admin",
+        bio: data.bio,
+        responsibilities: data.responsibilities,
         transactions: [],
         kpi: [],
       };
@@ -385,6 +455,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addJob: (j) => setJobs((p) => [...p, { ...j, id: "j-" + Math.random().toString(36).slice(2, 7) }]),
     updateProduct: (id, patch) => setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p))),
     addProduct: (p) => setProducts((prev) => [...prev, { ...p, id: "p-" + Math.random().toString(36).slice(2, 7) }]),
+    addComment: (announcementId, body) => {
+      if (!currentUser || !body.trim()) return;
+      const c: Comment = {
+        id: "c-" + Math.random().toString(36).slice(2, 7),
+        authorId: currentUser.id,
+        authorName: currentUser.name,
+        authorAvatar: currentUser.avatar,
+        body: body.trim(),
+        date: today(),
+      };
+      setAnnouncements((prev) => prev.map((a) => (a.id === announcementId ? { ...a, comments: [...a.comments, c] } : a)));
+    },
   };
 
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;

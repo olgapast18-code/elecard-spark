@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Rocket, ShieldCheck, Code2 } from "lucide-react";
+import { Rocket } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const { login, register, loginAs, users } = useApp();
+  const { login, register } = useApp();
   const navigate = useNavigate();
 
   const [loginEmail, setLoginEmail] = useState("");
@@ -40,14 +40,6 @@ function AuthPage() {
     navigate({ to: "/dashboard" });
   };
 
-  const demo = (id: string) => {
-    loginAs(id);
-    navigate({ to: "/dashboard" });
-  };
-
-  const adminId = users.find((u) => u.role === "admin")?.id;
-  const devId = users.find((u) => u.position.toLowerCase().includes("developer"))?.id;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-accent/40 flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-5xl grid md:grid-cols-2 gap-8 items-center">
@@ -67,18 +59,6 @@ function AuthPage() {
           <p className="text-muted-foreground">
             Профиль, бонусы за достижения, магазин мерча и обучения, карта должностей — всё в одном месте.
           </p>
-          <div className="grid grid-cols-3 gap-3 pt-4">
-            {[
-              { v: "1 200+", l: "сотрудников" },
-              { v: "98%", l: "вовлечённость" },
-              { v: "40+", l: "наград в месяц" },
-            ].map((s) => (
-              <div key={s.l} className="rounded-xl bg-card border p-4">
-                <div className="text-2xl font-bold text-brand">{s.v}</div>
-                <div className="text-xs text-muted-foreground">{s.l}</div>
-              </div>
-            ))}
-          </div>
         </div>
 
         <Card className="shadow-xl border-border/60">
@@ -93,7 +73,7 @@ function AuthPage() {
                 <form onSubmit={handleLogin} className="space-y-3">
                   <div>
                     <Label>Email</Label>
-                    <Input value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder="you@elecard.space" />
+                    <Input value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder="you@elecard.ru" />
                   </div>
                   <div>
                     <Label>Пароль</Label>
@@ -101,23 +81,6 @@ function AuthPage() {
                   </div>
                   <Button type="submit" className="w-full">Войти</Button>
                 </form>
-
-                <div className="relative my-4 text-center">
-                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t" /></div>
-                  <span className="relative bg-card px-3 text-xs uppercase tracking-wider text-muted-foreground">Быстрый демо-вход</span>
-                </div>
-                <div className="grid gap-2">
-                  {adminId && (
-                    <Button variant="secondary" onClick={() => demo(adminId)} className="justify-start">
-                      <ShieldCheck className="h-4 w-4 mr-2 text-brand" /> Войти как Администратор (HR)
-                    </Button>
-                  )}
-                  {devId && (
-                    <Button variant="secondary" onClick={() => demo(devId)} className="justify-start">
-                      <Code2 className="h-4 w-4 mr-2 text-brand" /> Войти как Сотрудник (Разработчик)
-                    </Button>
-                  )}
-                </div>
               </TabsContent>
 
               <TabsContent value="signup" className="space-y-3 pt-4">
@@ -128,7 +91,7 @@ function AuthPage() {
                   </div>
                   <div>
                     <Label>Email</Label>
-                    <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="ivan@elecard.space" />
+                    <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="ivan@elecard.ru" />
                   </div>
                   <div>
                     <Label>Пароль</Label>

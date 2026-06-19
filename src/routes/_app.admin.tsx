@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { useApp, DEPARTMENTS, type Product } from "@/context/AppContext";
+import { useEffect, useState, useRef } from "react";
+import { useApp, DEPARTMENTS, type Product, type Job, type User, type Announcement } from "@/context/AppContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ShieldCheck, Coins, UserPlus, Pencil, PackagePlus, Sparkles } from "lucide-react";
+import { ShieldCheck, Coins, UserPlus, Pencil, PackagePlus, Sparkles, Trash2, Network, Megaphone, Plus, Camera } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/admin")({
@@ -18,7 +18,8 @@ export const Route = createFileRoute("/_app/admin")({
 });
 
 function AdminPage() {
-  const { isAdmin, users, products, jobs, grantBonus, addUser, updateUser, addJob, addProduct, updateProduct } = useApp();
+  const app = useApp();
+  const { isAdmin } = app;
   const navigate = useNavigate();
 
   useEffect(() => { if (!isAdmin) navigate({ to: "/dashboard" }); }, [isAdmin, navigate]);
@@ -30,35 +31,45 @@ function AdminPage() {
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <ShieldCheck className="h-7 w-7 text-brand" /> Админ-панель
         </h1>
-        <p className="text-muted-foreground text-sm">Управление сотрудниками, бонусами, должностями и магазином</p>
+        <p className="text-muted-foreground text-sm">Сотрудники, структура, бонусы, новости, должности и магазин</p>
       </header>
 
       <Tabs defaultValue="employees">
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="employees">Сотрудники</TabsTrigger>
-          <TabsTrigger value="grant">Начисление бонусов</TabsTrigger>
+          <TabsTrigger value="structure">Структура</TabsTrigger>
+          <TabsTrigger value="news">Новости</TabsTrigger>
+          <TabsTrigger value="grant">Бонусы</TabsTrigger>
           <TabsTrigger value="shop">Магазин</TabsTrigger>
           <TabsTrigger value="jobs">Должности</TabsTrigger>
         </TabsList>
 
         <TabsContent value="employees" className="space-y-4 pt-4">
-          <EmployeesPanel users={users} updateUser={updateUser} addUser={addUser} />
+          <EmployeesPanel />
+        </TabsContent>
+
+        <TabsContent value="structure" className="pt-4">
+          <StructurePanel />
+        </TabsContent>
+
+        <TabsContent value="news" className="pt-4">
+          <NewsPanel />
         </TabsContent>
 
         <TabsContent value="grant" className="pt-4">
-          <GrantPanel users={users.filter((u) => u.role !== "admin")} onGrant={(uid, amt, reason) => {
-            grantBonus(uid, amt, reason);
-            const u = users.find((x) => x.id === uid);
+          <GrantPanel users={app.users.filter((u) => u.role !== "admin")} onGrant={(uid, amt, reason) => {
+            app.grantBonus(uid, amt, reason);
+            const u = app.users.find((x) => x.id === uid);
             toast.success(`Начислено ${amt} бонусов`, { description: `${u?.name} · ${reason}` });
           }} />
         </TabsContent>
 
         <TabsContent value="shop" className="pt-4">
-          <ShopAdmin products={products} updateProduct={updateProduct} addProduct={addProduct} />
+          <ShopAdmin />
         </TabsContent>
 
         <TabsContent value="jobs" className="pt-4">
-          <JobsAdmin jobs={jobs} addJob={addJob} />
+          <JobsAdmin />
         </TabsContent>
       </Tabs>
     </div>
@@ -66,9 +77,19 @@ function AdminPage() {
 }
 
 /* ---------- Employees ---------- */
-function EmployeesPanel({ users, updateUser, addUser }: { users: ReturnType<typeof useApp>["users"]; updateUser: ReturnType<typeof useApp>["updateUser"]; addUser: ReturnType<typeof useApp>["addUser"] }) {
-  const [newU, setNewU] = useState({ name: "", email: "", password: "", department: DEPARTMENTS[0], position: "", balance: 100 });
+function EmployeesPanel() {
+  const { users, updateUser, addUser, deleteUser } = useApp();
   const [open, setOpen] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const empty = { name: "", email: "", password: "", department: DEPARTMENTS[0], position: "", balance: 100, avatar: "" };
+  const [newU, setNewU] = useState(empty);
+
+  const onFile = (f: File) => {
+    if (f.size > 4 * 1024 * 1024) return toast.error("Файл больше 4МБ");
+    const r = new FileReader();
+    r.onload = () => setNewU((d) => ({ ...d, avatar: String(r.result) }));
+    r.readAsDataURL(f);
+  };
 
   return (
     <Card>
@@ -81,6 +102,11 @@ function EmployeesPanel({ users, updateUser, addUser }: { users: ReturnType<type
           <DialogContent>
             <DialogHeader><DialogTitle>Новый сотрудник</DialogTitle></DialogHeader>
             <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                {newU.avatar ? <img src={newU.avatar} className="h-14 w-14 rounded-full object-cover" alt="" /> : <div className="h-14 w-14 rounded-full bg-muted" />}
+                <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
+                <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()}><Camera className="h-4 w-4 mr-2" />Фото</Button>
+              </div>
               <Field label="ФИО"><Input value={newU.name} onChange={(e) => setNewU({ ...newU, name: e.target.value })} /></Field>
               <Field label="Email"><Input value={newU.email} onChange={(e) => setNewU({ ...newU, email: e.target.value })} /></Field>
               <Field label="Пароль"><Input value={newU.password} onChange={(e) => setNewU({ ...newU, password: e.target.value })} /></Field>
@@ -99,7 +125,7 @@ function EmployeesPanel({ users, updateUser, addUser }: { users: ReturnType<type
                 addUser({ ...newU, startDate: new Date().toISOString().slice(0, 10) });
                 toast.success("Сотрудник добавлен");
                 setOpen(false);
-                setNewU({ name: "", email: "", password: "", department: DEPARTMENTS[0], position: "", balance: 100 });
+                setNewU(empty);
               }}>Создать</Button>
             </div>
           </DialogContent>
@@ -113,7 +139,17 @@ function EmployeesPanel({ users, updateUser, addUser }: { users: ReturnType<type
             </thead>
             <tbody>
               {users.map((u) => (
-                <EmployeeRow key={u.id} user={u} onSave={(patch) => { updateUser(u.id, patch); toast.success("Сохранено"); }} />
+                <EmployeeRow
+                  key={u.id}
+                  user={u}
+                  onSave={(patch) => { updateUser(u.id, patch); toast.success("Сохранено"); }}
+                  onDelete={() => {
+                    if (u.role === "admin") return toast.error("Нельзя удалить администратора");
+                    if (!confirm(`Удалить сотрудника ${u.name}?`)) return;
+                    deleteUser(u.id);
+                    toast.success("Сотрудник удалён");
+                  }}
+                />
               ))}
             </tbody>
           </table>
@@ -123,33 +159,44 @@ function EmployeesPanel({ users, updateUser, addUser }: { users: ReturnType<type
   );
 }
 
-function EmployeeRow({ user, onSave }: { user: ReturnType<typeof useApp>["users"][number]; onSave: (p: Partial<ReturnType<typeof useApp>["users"][number]>) => void }) {
+function EmployeeRow({ user, onSave, onDelete }: { user: User; onSave: (p: Partial<User>) => void; onDelete: () => void }) {
   const { users } = useApp();
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState({
-    name: user.name,
-    position: user.position,
-    department: user.department,
-    balance: user.balance,
-    bio: user.bio ?? "",
-    responsibilities: (user.responsibilities ?? []).join(", "),
-    managerId: user.managerId ?? "",
+  const fileRef = useRef<HTMLInputElement>(null);
+  const fresh = () => ({
+    name: user.name, position: user.position, department: user.department, balance: user.balance,
+    bio: user.bio ?? "", responsibilities: (user.responsibilities ?? []).join(", "),
+    managerId: user.managerId ?? "", avatar: user.avatar,
   });
+  const [draft, setDraft] = useState(fresh());
   const managers = users.filter((u) => u.id !== user.id);
+
+  const onFile = (f: File) => {
+    if (f.size > 4 * 1024 * 1024) return toast.error("Файл больше 4МБ");
+    const r = new FileReader();
+    r.onload = () => setDraft((d) => ({ ...d, avatar: String(r.result) }));
+    r.readAsDataURL(f);
+  };
+
   return (
     <tr className="border-b last:border-0">
-      <td className="py-3 pr-4 flex items-center gap-3"><img src={user.avatar} className="h-8 w-8 rounded-full" alt="" />{user.name}</td>
+      <td className="py-3 pr-4 flex items-center gap-3"><img src={user.avatar} className="h-8 w-8 rounded-full object-cover" alt="" />{user.name}</td>
       <td className="pr-4"><Badge variant="secondary">{user.department}</Badge></td>
       <td className="pr-4">{user.position}</td>
       <td className="pr-4 font-semibold flex items-center gap-1"><Coins className="h-4 w-4 text-coin" />{user.balance}</td>
-      <td>
-        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setDraft({ name: user.name, position: user.position, department: user.department, balance: user.balance, bio: user.bio ?? "", responsibilities: (user.responsibilities ?? []).join(", "), managerId: user.managerId ?? "" }); }}>
+      <td className="text-right whitespace-nowrap">
+        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setDraft(fresh()); }}>
           <DialogTrigger asChild>
             <Button size="sm" variant="ghost"><Pencil className="h-4 w-4" /></Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle>Редактировать сотрудника</DialogTitle></DialogHeader>
             <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
+              <div className="flex items-center gap-3">
+                <img src={draft.avatar} className="h-14 w-14 rounded-full object-cover" alt="" />
+                <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
+                <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()}><Camera className="h-4 w-4 mr-2" />Сменить фото</Button>
+              </div>
               <Field label="ФИО"><Input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} /></Field>
               <Field label="Должность"><Input value={draft.position} onChange={(e) => setDraft({ ...draft, position: e.target.value })} /></Field>
               <Field label="Отдел">
@@ -172,26 +219,142 @@ function EmployeeRow({ user, onSave }: { user: ReturnType<typeof useApp>["users"
               <Field label="Баланс"><Input type="number" value={draft.balance} onChange={(e) => setDraft({ ...draft, balance: +e.target.value })} /></Field>
               <Button className="w-full" onClick={() => {
                 onSave({
-                  name: draft.name,
-                  position: draft.position,
-                  department: draft.department,
-                  balance: draft.balance,
+                  name: draft.name, position: draft.position, department: draft.department, balance: draft.balance,
                   bio: draft.bio,
                   responsibilities: draft.responsibilities.split(",").map((s) => s.trim()).filter(Boolean),
                   managerId: draft.managerId || null,
+                  avatar: draft.avatar,
                 });
                 setOpen(false);
               }}>Сохранить</Button>
             </div>
           </DialogContent>
         </Dialog>
+        <Button size="sm" variant="ghost" onClick={onDelete} className="text-rose-600 hover:text-rose-700"><Trash2 className="h-4 w-4" /></Button>
       </td>
     </tr>
   );
 }
 
+/* ---------- Structure ---------- */
+function StructurePanel() {
+  const { users, updateUser } = useApp();
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2"><Network className="h-5 w-5 text-brand" /> Структура подчинения</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-xs text-muted-foreground mb-4">Назначьте руководителя каждому сотруднику, чтобы выстроить дерево компании.</p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-left text-muted-foreground border-b">
+              <tr><th className="py-2 pr-4">Сотрудник</th><th className="pr-4">Отдел</th><th className="pr-4">Руководитель</th></tr>
+            </thead>
+            <tbody>
+              {users.map((u) => {
+                const candidates = users.filter((m) => m.id !== u.id);
+                return (
+                  <tr key={u.id} className="border-b last:border-0">
+                    <td className="py-3 pr-4 flex items-center gap-3"><img src={u.avatar} className="h-8 w-8 rounded-full object-cover" alt="" /><div><div className="font-medium">{u.name}</div><div className="text-xs text-muted-foreground">{u.position}</div></div></td>
+                    <td className="pr-4"><Badge variant="secondary">{u.department}</Badge></td>
+                    <td className="pr-4 min-w-[260px]">
+                      <Select
+                        value={u.managerId ?? "none"}
+                        onValueChange={(v) => {
+                          updateUser(u.id, { managerId: v === "none" ? null : v });
+                          toast.success("Связь обновлена");
+                        }}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">— Корень / без руководителя —</SelectItem>
+                          {candidates.map((m) => <SelectItem key={m.id} value={m.id}>{m.name} — {m.position}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ---------- News ---------- */
+function NewsPanel() {
+  const { announcements, addAnnouncement, updateAnnouncement, deleteAnnouncement } = useApp();
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+
+  return (
+    <div className="grid lg:grid-cols-[1fr_360px] gap-6">
+      <Card>
+        <CardHeader><CardTitle className="flex items-center gap-2"><Megaphone className="h-5 w-5 text-brand" /> Новости и объявления</CardTitle></CardHeader>
+        <CardContent>
+          {announcements.length === 0 && <p className="text-sm text-muted-foreground">Пока нет новостей</p>}
+          <ul className="space-y-4">
+            {announcements.map((a) => (
+              <NewsItem key={a.id} a={a} onSave={(p) => { updateAnnouncement(a.id, p); toast.success("Новость обновлена"); }} onDelete={() => { if (confirm("Удалить новость?")) { deleteAnnouncement(a.id); toast.success("Удалено"); } }} />
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="flex items-center gap-2"><Plus className="h-5 w-5 text-brand" /> Новая публикация</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <Field label="Заголовок"><Input value={title} onChange={(e) => setTitle(e.target.value)} /></Field>
+          <Field label="Текст"><Textarea rows={5} value={body} onChange={(e) => setBody(e.target.value)} /></Field>
+          <Button className="w-full" onClick={() => {
+            if (!title.trim() || !body.trim()) return toast.error("Заполните заголовок и текст");
+            addAnnouncement({ title: title.trim(), body: body.trim() });
+            toast.success("Опубликовано");
+            setTitle(""); setBody("");
+          }}>Опубликовать</Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function NewsItem({ a, onSave, onDelete }: { a: Announcement; onSave: (p: { title: string; body: string }) => void; onDelete: () => void }) {
+  const [edit, setEdit] = useState(false);
+  const [t, setT] = useState(a.title);
+  const [b, setB] = useState(a.body);
+  if (edit) {
+    return (
+      <li className="border rounded-lg p-3 space-y-2">
+        <Input value={t} onChange={(e) => setT(e.target.value)} />
+        <Textarea rows={3} value={b} onChange={(e) => setB(e.target.value)} />
+        <div className="flex gap-2">
+          <Button size="sm" onClick={() => { onSave({ title: t, body: b }); setEdit(false); }}>Сохранить</Button>
+          <Button size="sm" variant="ghost" onClick={() => { setT(a.title); setB(a.body); setEdit(false); }}>Отмена</Button>
+        </div>
+      </li>
+    );
+  }
+  return (
+    <li className="border-l-2 border-brand pl-4 flex items-start justify-between gap-3">
+      <div className="min-w-0">
+        <div className="text-sm font-semibold">{a.title}</div>
+        <div className="text-xs text-muted-foreground mb-1">{new Date(a.date).toLocaleDateString("ru-RU")} · {a.comments.length} комм.</div>
+        <div className="text-sm text-foreground/80">{a.body}</div>
+      </div>
+      <div className="flex gap-1 shrink-0">
+        <Button size="sm" variant="ghost" onClick={() => setEdit(true)}><Pencil className="h-4 w-4" /></Button>
+        <Button size="sm" variant="ghost" onClick={onDelete} className="text-rose-600 hover:text-rose-700"><Trash2 className="h-4 w-4" /></Button>
+      </div>
+    </li>
+  );
+}
+
 /* ---------- Grant ---------- */
-function GrantPanel({ users, onGrant }: { users: ReturnType<typeof useApp>["users"]; onGrant: (uid: string, amt: number, reason: string) => void }) {
+function GrantPanel({ users, onGrant }: { users: User[]; onGrant: (uid: string, amt: number, reason: string) => void }) {
   const [uid, setUid] = useState<string>(users[0]?.id ?? "");
   const [amount, setAmount] = useState(50);
   const [reason, setReason] = useState("Успешное закрытие спринта");
@@ -208,17 +371,11 @@ function GrantPanel({ users, onGrant }: { users: ReturnType<typeof useApp>["user
               <SelectContent>{users.map((u) => <SelectItem key={u.id} value={u.id}>{u.name} — {u.position}</SelectItem>)}</SelectContent>
             </Select>
           </Field>
-          <Field label="Сумма">
-            <Input type="number" value={amount} onChange={(e) => setAmount(+e.target.value)} />
-          </Field>
-          <Field label="Причина">
-            <Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} />
-          </Field>
+          <Field label="Сумма"><Input type="number" value={amount} onChange={(e) => setAmount(+e.target.value)} /></Field>
+          <Field label="Причина"><Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} /></Field>
           <div className="flex flex-wrap gap-2">
             {presets.map((p) => (
-              <button key={p} onClick={() => setReason(p)} className="text-xs rounded-full border bg-card hover:bg-accent px-3 py-1">
-                {p}
-              </button>
+              <button key={p} onClick={() => setReason(p)} className="text-xs rounded-full border bg-card hover:bg-accent px-3 py-1">{p}</button>
             ))}
           </div>
           <Button className="w-full" onClick={() => {
@@ -234,7 +391,7 @@ function GrantPanel({ users, onGrant }: { users: ReturnType<typeof useApp>["user
           <ul className="space-y-3">
             {users.map((u) => (
               <li key={u.id} className="flex items-center gap-3">
-                <img src={u.avatar} className="h-9 w-9 rounded-full" alt="" />
+                <img src={u.avatar} className="h-9 w-9 rounded-full object-cover" alt="" />
                 <div className="flex-1 min-w-0"><div className="text-sm font-medium truncate">{u.name}</div><div className="text-xs text-muted-foreground truncate">{u.position}</div></div>
                 <div className="font-bold flex items-center gap-1"><Coins className="h-4 w-4 text-coin" />{u.balance}</div>
               </li>
@@ -247,7 +404,8 @@ function GrantPanel({ users, onGrant }: { users: ReturnType<typeof useApp>["user
 }
 
 /* ---------- Shop admin ---------- */
-function ShopAdmin({ products, updateProduct, addProduct }: { products: Product[]; updateProduct: (id: string, p: Partial<Product>) => void; addProduct: (p: Omit<Product, "id">) => void }) {
+function ShopAdmin() {
+  const { products, updateProduct, addProduct, deleteProduct } = useApp();
   const [open, setOpen] = useState(false);
   const [n, setN] = useState<Omit<Product, "id">>({ name: "", description: "", price: 100, category: "Брендированный мерч", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=70" });
   return (
@@ -265,14 +423,21 @@ function ShopAdmin({ products, updateProduct, addProduct }: { products: Product[
       </CardHeader>
       <CardContent>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {products.map((p) => <ProductAdminCard key={p.id} product={p} onSave={(patch) => { updateProduct(p.id, patch); toast.success("Сохранено"); }} />)}
+          {products.map((p) => (
+            <ProductAdminCard
+              key={p.id}
+              product={p}
+              onSave={(patch) => { updateProduct(p.id, patch); toast.success("Сохранено"); }}
+              onDelete={() => { if (confirm(`Удалить «${p.name}»?`)) { deleteProduct(p.id); toast.success("Товар удалён"); } }}
+            />
+          ))}
         </div>
       </CardContent>
     </Card>
   );
 }
 
-function ProductAdminCard({ product, onSave }: { product: Product; onSave: (p: Partial<Product>) => void }) {
+function ProductAdminCard({ product, onSave, onDelete }: { product: Product; onSave: (p: Partial<Product>) => void; onDelete: () => void }) {
   const [open, setOpen] = useState(false);
   const [d, setD] = useState<Omit<Product, "id">>({ name: product.name, description: product.description, price: product.price, category: product.category, image: product.image });
   return (
@@ -283,14 +448,17 @@ function ProductAdminCard({ product, onSave }: { product: Product; onSave: (p: P
         <div className="text-xs text-muted-foreground line-clamp-2">{product.description}</div>
         <div className="flex items-center justify-between pt-2">
           <span className="text-sm font-bold flex items-center gap-1"><Coins className="h-4 w-4 text-coin" />{product.price}</span>
-          <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setD({ name: product.name, description: product.description, price: product.price, category: product.category, image: product.image }); }}>
-            <DialogTrigger asChild><Button size="sm" variant="ghost"><Pencil className="h-4 w-4" /></Button></DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Редактировать товар</DialogTitle></DialogHeader>
-              <ProductForm value={d} onChange={setD} />
-              <Button className="w-full" onClick={() => { onSave(d); setOpen(false); }}>Сохранить</Button>
-            </DialogContent>
-          </Dialog>
+          <div className="flex gap-1">
+            <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setD({ name: product.name, description: product.description, price: product.price, category: product.category, image: product.image }); }}>
+              <DialogTrigger asChild><Button size="sm" variant="ghost"><Pencil className="h-4 w-4" /></Button></DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Редактировать товар</DialogTitle></DialogHeader>
+                <ProductForm value={d} onChange={setD} />
+                <Button className="w-full" onClick={() => { onSave(d); setOpen(false); }}>Сохранить</Button>
+              </DialogContent>
+            </Dialog>
+            <Button size="sm" variant="ghost" onClick={onDelete} className="text-rose-600 hover:text-rose-700"><Trash2 className="h-4 w-4" /></Button>
+          </div>
         </div>
       </div>
     </div>
@@ -321,9 +489,12 @@ function ProductForm({ value, onChange }: { value: Omit<Product, "id">; onChange
 }
 
 /* ---------- Jobs admin ---------- */
-function JobsAdmin({ jobs, addJob }: { jobs: ReturnType<typeof useApp>["jobs"]; addJob: ReturnType<typeof useApp>["addJob"] }) {
+function JobsAdmin() {
+  const { jobs, addJob, updateJob, deleteJob } = useApp();
+  const empty = { title: "", department: DEPARTMENTS[0], mission: "", responsibilities: "", skills: "", kpi: "", careerTrack: "" };
   const [open, setOpen] = useState(false);
-  const [j, setJ] = useState({ title: "", department: DEPARTMENTS[0], mission: "", responsibilities: "", skills: "", kpi: "", careerTrack: "" });
+  const [j, setJ] = useState(empty);
+  const split = (s: string) => s.split(",").map((x) => x.trim()).filter(Boolean);
 
   return (
     <Card>
@@ -333,49 +504,78 @@ function JobsAdmin({ jobs, addJob }: { jobs: ReturnType<typeof useApp>["jobs"]; 
           <DialogTrigger asChild><Button size="sm"><PackagePlus className="h-4 w-4 mr-2" />Новая должность</Button></DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle>Новая должность</DialogTitle></DialogHeader>
-            <div className="space-y-3">
-              <Field label="Название"><Input value={j.title} onChange={(e) => setJ({ ...j, title: e.target.value })} /></Field>
-              <Field label="Отдел">
-                <Select value={j.department} onValueChange={(v) => setJ({ ...j, department: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{DEPARTMENTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
-                </Select>
-              </Field>
-              <Field label="Миссия"><Textarea rows={2} value={j.mission} onChange={(e) => setJ({ ...j, mission: e.target.value })} /></Field>
-              <Field label="Обязанности (через запятую)"><Input value={j.responsibilities} onChange={(e) => setJ({ ...j, responsibilities: e.target.value })} /></Field>
-              <Field label="Навыки (через запятую)"><Input value={j.skills} onChange={(e) => setJ({ ...j, skills: e.target.value })} /></Field>
-              <Field label="KPI (через запятую)"><Input value={j.kpi} onChange={(e) => setJ({ ...j, kpi: e.target.value })} /></Field>
-              <Field label="Карьерный трек (через запятую)"><Input value={j.careerTrack} onChange={(e) => setJ({ ...j, careerTrack: e.target.value })} /></Field>
-              <Button className="w-full" onClick={() => {
-                if (!j.title) return toast.error("Название обязательно");
-                const split = (s: string) => s.split(",").map((x) => x.trim()).filter(Boolean);
-                addJob({
-                  title: j.title, department: j.department, mission: j.mission,
-                  responsibilities: split(j.responsibilities),
-                  skills: split(j.skills),
-                  kpi: split(j.kpi),
-                  careerTrack: split(j.careerTrack),
-                });
-                toast.success("Должность создана");
-                setOpen(false);
-                setJ({ title: "", department: DEPARTMENTS[0], mission: "", responsibilities: "", skills: "", kpi: "", careerTrack: "" });
-              }}>Создать</Button>
-            </div>
+            <JobForm value={j} onChange={setJ} />
+            <Button className="w-full" onClick={() => {
+              if (!j.title) return toast.error("Название обязательно");
+              addJob({ title: j.title, department: j.department, mission: j.mission, responsibilities: split(j.responsibilities), skills: split(j.skills), kpi: split(j.kpi), careerTrack: split(j.careerTrack) });
+              toast.success("Должность создана"); setOpen(false); setJ(empty);
+            }}>Создать</Button>
           </DialogContent>
         </Dialog>
       </CardHeader>
       <CardContent>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {jobs.map((it) => (
-            <div key={it.id} className="rounded-xl border bg-card p-4">
-              <Badge variant="secondary">{it.department}</Badge>
-              <div className="font-semibold mt-2">{it.title}</div>
-              <div className="text-xs text-muted-foreground line-clamp-3 mt-1">{it.mission}</div>
-            </div>
+            <JobCard key={it.id} job={it}
+              onSave={(patch) => { updateJob(it.id, patch); toast.success("Сохранено"); }}
+              onDelete={() => { if (confirm(`Удалить «${it.title}»?`)) { deleteJob(it.id); toast.success("Удалено"); } }}
+            />
           ))}
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function JobCard({ job, onSave, onDelete }: { job: Job; onSave: (p: Partial<Job>) => void; onDelete: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [d, setD] = useState({
+    title: job.title, department: job.department, mission: job.mission,
+    responsibilities: job.responsibilities.join(", "),
+    skills: job.skills.join(", "),
+    kpi: job.kpi.join(", "),
+    careerTrack: job.careerTrack.join(", "),
+  });
+  const split = (s: string) => s.split(",").map((x) => x.trim()).filter(Boolean);
+  return (
+    <div className="rounded-xl border bg-card p-4 flex flex-col">
+      <Badge variant="secondary">{job.department}</Badge>
+      <div className="font-semibold mt-2">{job.title}</div>
+      <div className="text-xs text-muted-foreground line-clamp-3 mt-1 flex-1">{job.mission}</div>
+      <div className="flex justify-end gap-1 mt-3">
+        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setD({ title: job.title, department: job.department, mission: job.mission, responsibilities: job.responsibilities.join(", "), skills: job.skills.join(", "), kpi: job.kpi.join(", "), careerTrack: job.careerTrack.join(", ") }); }}>
+          <DialogTrigger asChild><Button size="sm" variant="ghost"><Pencil className="h-4 w-4" /></Button></DialogTrigger>
+          <DialogContent className="max-w-lg">
+            <DialogHeader><DialogTitle>Редактировать должность</DialogTitle></DialogHeader>
+            <JobForm value={d} onChange={setD} />
+            <Button className="w-full" onClick={() => {
+              onSave({ title: d.title, department: d.department, mission: d.mission, responsibilities: split(d.responsibilities), skills: split(d.skills), kpi: split(d.kpi), careerTrack: split(d.careerTrack) });
+              setOpen(false);
+            }}>Сохранить</Button>
+          </DialogContent>
+        </Dialog>
+        <Button size="sm" variant="ghost" onClick={onDelete} className="text-rose-600 hover:text-rose-700"><Trash2 className="h-4 w-4" /></Button>
+      </div>
+    </div>
+  );
+}
+
+function JobForm({ value, onChange }: { value: { title: string; department: string; mission: string; responsibilities: string; skills: string; kpi: string; careerTrack: string }; onChange: (v: typeof value) => void }) {
+  return (
+    <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
+      <Field label="Название"><Input value={value.title} onChange={(e) => onChange({ ...value, title: e.target.value })} /></Field>
+      <Field label="Отдел">
+        <Select value={value.department} onValueChange={(v) => onChange({ ...value, department: v })}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>{DEPARTMENTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+        </Select>
+      </Field>
+      <Field label="Миссия"><Textarea rows={2} value={value.mission} onChange={(e) => onChange({ ...value, mission: e.target.value })} /></Field>
+      <Field label="Обязанности (через запятую)"><Input value={value.responsibilities} onChange={(e) => onChange({ ...value, responsibilities: e.target.value })} /></Field>
+      <Field label="Навыки (через запятую)"><Input value={value.skills} onChange={(e) => onChange({ ...value, skills: e.target.value })} /></Field>
+      <Field label="KPI (через запятую)"><Input value={value.kpi} onChange={(e) => onChange({ ...value, kpi: e.target.value })} /></Field>
+      <Field label="Карьерный трек (через запятую)"><Input value={value.careerTrack} onChange={(e) => onChange({ ...value, careerTrack: e.target.value })} /></Field>
+    </div>
   );
 }
 

@@ -1,8 +1,7 @@
 import { createFileRoute, Outlet, useNavigate, Link, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useApp } from "@/context/AppContext";
-import { LayoutDashboard, Store, BriefcaseBusiness, Users, LogOut, Rocket, Coins, ShieldCheck } from "lucide-react";
-// keep Users import referenced
+import { LayoutDashboard, Store, BriefcaseBusiness, Users, LogOut, Rocket, Coins, ShieldCheck, UserCircle } from "lucide-react";
 void Users;
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -27,6 +26,7 @@ function AppLayout() {
     { to: "/team", label: "Наша команда", icon: Users },
     { to: "/shop", label: "Магазин бонусов", icon: Store },
     { to: "/jobs", label: "Карта должностей", icon: BriefcaseBusiness },
+    { to: "/profile", label: "Моя карточка", icon: UserCircle },
     ...(isAdmin ? [{ to: "/admin", label: "Админ-панель", icon: ShieldCheck }] : []),
   ] as const;
 

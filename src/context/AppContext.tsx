@@ -334,12 +334,19 @@ type Ctx = {
   register: (data: { name: string; email: string; password: string; department: string; position: string }) => User;
   buyProduct: (productId: string) => { ok: boolean; message: string };
   grantBonus: (userId: string, amount: number, reason: string) => void;
-  addUser: (data: Omit<User, "id" | "avatar" | "transactions" | "kpi" | "balance" | "role"> & { balance?: number; role?: Role }) => void;
+  addUser: (data: Omit<User, "id" | "avatar" | "transactions" | "kpi" | "balance" | "role"> & { balance?: number; role?: Role; avatar?: string }) => void;
   updateUser: (id: string, patch: Partial<User>) => void;
+  deleteUser: (id: string) => void;
   addJob: (j: Omit<Job, "id">) => void;
+  updateJob: (id: string, patch: Partial<Job>) => void;
+  deleteJob: (id: string) => void;
   updateProduct: (id: string, patch: Partial<Product>) => void;
   addProduct: (p: Omit<Product, "id">) => void;
+  deleteProduct: (id: string) => void;
   addComment: (announcementId: string, body: string) => void;
+  addAnnouncement: (data: { title: string; body: string }) => void;
+  updateAnnouncement: (id: string, patch: Partial<Pick<Announcement, "title" | "body">>) => void;
+  deleteAnnouncement: (id: string) => void;
 };
 
 const AppCtx = createContext<Ctx | null>(null);

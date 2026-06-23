@@ -102,7 +102,7 @@ const seedUsers: User[] = [
     id: "u-admin",
     name: "Ольга Пастушкова",
     email: "olga.pastushkova@elecard.ru",
-    password: "214813991ola",
+    password: "12345elecard",
     role: "admin",
     department: "Руководство",
     position: "HR Director",

@@ -513,6 +513,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     updateAnnouncement: (id, patch) => setAnnouncements((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a))),
     deleteAnnouncement: (id) => setAnnouncements((prev) => prev.filter((a) => a.id !== id)),
+    addLink: (data) => setLinks((prev) => [...prev, { ...data, id: "l-" + Math.random().toString(36).slice(2, 7) }]),
+    updateLink: (id, patch) => setLinks((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l))),
+    deleteLink: (id) => setLinks((prev) => prev.filter((l) => l.id !== id)),
   };
 
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;

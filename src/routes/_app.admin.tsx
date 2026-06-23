@@ -27,22 +27,24 @@ function AdminPage() {
   if (!isAdmin) return null;
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6">
       <header>
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
           <ShieldCheck className="h-7 w-7 text-brand" /> Админ-панель
         </h1>
-        <p className="text-muted-foreground text-sm">Сотрудники, структура, бонусы, новости, должности и магазин</p>
+        <p className="text-muted-foreground text-sm">Сотрудники, структура, бонусы, новости, задачи, должности, магазин, ссылки</p>
       </header>
 
       <Tabs defaultValue="employees">
-        <TabsList className="flex-wrap">
+        <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="employees">Сотрудники</TabsTrigger>
           <TabsTrigger value="structure">Структура</TabsTrigger>
           <TabsTrigger value="news">Новости</TabsTrigger>
+          <TabsTrigger value="tasks">Задачи</TabsTrigger>
           <TabsTrigger value="grant">Бонусы</TabsTrigger>
           <TabsTrigger value="shop">Магазин</TabsTrigger>
           <TabsTrigger value="jobs">Должности</TabsTrigger>
+          <TabsTrigger value="links">Ссылки</TabsTrigger>
         </TabsList>
 
         <TabsContent value="employees" className="space-y-4 pt-4">
@@ -55,6 +57,10 @@ function AdminPage() {
 
         <TabsContent value="news" className="pt-4">
           <NewsPanel />
+        </TabsContent>
+
+        <TabsContent value="tasks" className="pt-4">
+          <TasksPanel />
         </TabsContent>
 
         <TabsContent value="grant" className="pt-4">
@@ -71,6 +77,10 @@ function AdminPage() {
 
         <TabsContent value="jobs" className="pt-4">
           <JobsAdmin />
+        </TabsContent>
+
+        <TabsContent value="links" className="pt-4">
+          <LinksAdmin />
         </TabsContent>
       </Tabs>
     </div>

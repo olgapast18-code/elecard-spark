@@ -598,3 +598,153 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </div>
   );
 }
+
+/* ---------- Tasks (KPI) admin ---------- */
+function TasksPanel() {
+  const { users, updateUser } = useApp();
+  const [uid, setUid] = useState<string>(users[0]?.id ?? "");
+  const user = users.find((u) => u.id === uid);
+  const [title, setTitle] = useState("");
+  const [progress, setProgress] = useState(0);
+
+  const setKpi = (kpi: { title: string; progress: number }[]) => {
+    if (!user) return;
+    updateUser(user.id, { kpi });
+  };
+
+  return (
+    <div className="grid lg:grid-cols-[320px_1fr] gap-6">
+      <Card>
+        <CardHeader><CardTitle className="text-base">Выберите сотрудника</CardTitle></CardHeader>
+        <CardContent>
+          <Select value={uid} onValueChange={setUid}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {users.map((u) => <SelectItem key={u.id} value={u.id}>{u.name} — {u.position}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Target className="h-5 w-5 text-brand" /> Задачи / KPI {user && <span className="text-sm text-muted-foreground font-normal">— {user.name}</span>}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {!user && <p className="text-sm text-muted-foreground">Сначала выберите сотрудника</p>}
+          {user && (
+            <>
+              <div className="space-y-4">
+                {user.kpi.length === 0 && <p className="text-sm text-muted-foreground">Задач пока нет</p>}
+                {user.kpi.map((k, i) => (
+                  <div key={i} className="grid grid-cols-[1fr_120px_80px_auto] gap-2 items-center">
+                    <Input
+                      value={k.title}
+                      onChange={(e) => setKpi(user.kpi.map((x, j) => j === i ? { ...x, title: e.target.value } : x))}
+                    />
+                    <Input
+                      type="number" min={0} max={100}
+                      value={k.progress}
+                      onChange={(e) => setKpi(user.kpi.map((x, j) => j === i ? { ...x, progress: Math.max(0, Math.min(100, +e.target.value)) } : x))}
+                    />
+                    <Progress value={k.progress} className="h-2" />
+                    <Button size="sm" variant="ghost" className="text-rose-600" onClick={() => setKpi(user.kpi.filter((_, j) => j !== i))}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t pt-4 grid grid-cols-[1fr_120px_auto] gap-2 items-end">
+                <Field label="Новая задача"><Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Релиз v3.3" /></Field>
+                <Field label="Прогресс %"><Input type="number" min={0} max={100} value={progress} onChange={(e) => setProgress(+e.target.value)} /></Field>
+                <Button onClick={() => {
+                  if (!title.trim()) return toast.error("Введите название задачи");
+                  setKpi([...user.kpi, { title: title.trim(), progress: Math.max(0, Math.min(100, progress)) }]);
+                  setTitle(""); setProgress(0);
+                  toast.success("Задача добавлена");
+                }}>
+                  <Plus className="h-4 w-4 mr-1" /> Добавить
+                </Button>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+/* ---------- Useful Links admin ---------- */
+function LinksAdmin() {
+  const { links, addLink, updateLink, deleteLink } = useApp();
+  const empty = { title: "", url: "", description: "", category: "Сервисы" };
+  const [n, setN] = useState(empty);
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between gap-2">
+        <CardTitle className="flex items-center gap-2"><Link2 className="h-5 w-5 text-brand" /> Полезные ссылки ({links.length})</CardTitle>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild><Button size="sm"><Plus className="h-4 w-4 mr-1" /> Добавить</Button></DialogTrigger>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Новая ссылка</DialogTitle></DialogHeader>
+            <LinkForm value={n} onChange={setN} />
+            <Button className="w-full" onClick={() => {
+              if (!n.title.trim() || !n.url.trim()) return toast.error("Название и URL обязательны");
+              addLink(n);
+              toast.success("Ссылка добавлена");
+              setN(empty); setOpen(false);
+            }}>Создать</Button>
+          </DialogContent>
+        </Dialog>
+      </CardHeader>
+      <CardContent>
+        <ul className="space-y-2">
+          {links.map((l) => (
+            <LinkRow key={l.id} link={l}
+              onSave={(patch) => { updateLink(l.id, patch); toast.success("Сохранено"); }}
+              onDelete={() => { if (confirm(`Удалить «${l.title}»?`)) { deleteLink(l.id); toast.success("Удалено"); } }} />
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
+  );
+}
+
+function LinkRow({ link, onSave, onDelete }: { link: UsefulLink; onSave: (p: Partial<UsefulLink>) => void; onDelete: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [d, setD] = useState({ title: link.title, url: link.url, description: link.description ?? "", category: link.category ?? "Сервисы" });
+  return (
+    <li className="flex items-center gap-3 border rounded-lg p-3">
+      <div className="h-9 w-9 rounded-lg bg-accent text-brand grid place-items-center shrink-0"><ExternalLink className="h-4 w-4" /></div>
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-semibold truncate">{link.title}</div>
+        <div className="text-xs text-muted-foreground truncate">{link.url}</div>
+      </div>
+      {link.category && <Badge variant="secondary" className="hidden sm:inline-flex">{link.category}</Badge>}
+      <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setD({ title: link.title, url: link.url, description: link.description ?? "", category: link.category ?? "Сервисы" }); }}>
+        <DialogTrigger asChild><Button size="sm" variant="ghost"><Pencil className="h-4 w-4" /></Button></DialogTrigger>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Редактировать ссылку</DialogTitle></DialogHeader>
+          <LinkForm value={d} onChange={setD} />
+          <Button className="w-full" onClick={() => { onSave(d); setOpen(false); }}>Сохранить</Button>
+        </DialogContent>
+      </Dialog>
+      <Button size="sm" variant="ghost" className="text-rose-600" onClick={onDelete}><Trash2 className="h-4 w-4" /></Button>
+    </li>
+  );
+}
+
+function LinkForm({ value, onChange }: { value: { title: string; url: string; description: string; category: string }; onChange: (v: typeof value) => void }) {
+  return (
+    <div className="space-y-3">
+      <Field label="Название"><Input value={value.title} onChange={(e) => onChange({ ...value, title: e.target.value })} /></Field>
+      <Field label="URL"><Input value={value.url} onChange={(e) => onChange({ ...value, url: e.target.value })} placeholder="https://..." /></Field>
+      <Field label="Описание"><Input value={value.description} onChange={(e) => onChange({ ...value, description: e.target.value })} /></Field>
+      <Field label="Категория"><Input value={value.category} onChange={(e) => onChange({ ...value, category: e.target.value })} /></Field>
+    </div>
+  );
+}
+

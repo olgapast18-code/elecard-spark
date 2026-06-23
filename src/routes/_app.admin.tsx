@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
-import { useApp, DEPARTMENTS, type Product, type Job, type User, type Announcement } from "@/context/AppContext";
+import { useApp, DEPARTMENTS, type Product, type Job, type User, type Announcement, type UsefulLink } from "@/context/AppContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ShieldCheck, Coins, UserPlus, Pencil, PackagePlus, Sparkles, Trash2, Network, Megaphone, Plus, Camera } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { ShieldCheck, Coins, UserPlus, Pencil, PackagePlus, Sparkles, Trash2, Network, Megaphone, Plus, Camera, Target, Link2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/admin")({

@@ -18,7 +18,7 @@ function TeamPage() {
   const depts = DEPARTMENTS.filter((d) => users.some((u) => u.department === d));
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8">
       <header>
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <Users className="h-7 w-7 text-brand" /> Наша команда

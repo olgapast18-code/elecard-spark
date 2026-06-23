@@ -1,10 +1,10 @@
 import { createFileRoute, Outlet, useNavigate, Link, useRouterState } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useApp } from "@/context/AppContext";
-import { LayoutDashboard, Store, BriefcaseBusiness, Users, LogOut, Rocket, Coins, ShieldCheck, UserCircle } from "lucide-react";
-void Users;
+import { LayoutDashboard, Store, BriefcaseBusiness, Users, LogOut, Rocket, Coins, ShieldCheck, UserCircle, Link2, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/_app")({
   component: AppLayout,
@@ -14,10 +14,13 @@ function AppLayout() {
   const { currentUser, logout, isAdmin } = useApp();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     if (!currentUser) navigate({ to: "/auth" });
   }, [currentUser, navigate]);
+
+  useEffect(() => { setMobileOpen(false); }, [pathname]);
 
   if (!currentUser) return null;
 
@@ -26,73 +29,104 @@ function AppLayout() {
     { to: "/team", label: "Наша команда", icon: Users },
     { to: "/shop", label: "Магазин бонусов", icon: Store },
     { to: "/jobs", label: "Карта должностей", icon: BriefcaseBusiness },
+    { to: "/links", label: "Полезные ссылки", icon: Link2 },
     { to: "/profile", label: "Моя карточка", icon: UserCircle },
     ...(isAdmin ? [{ to: "/admin", label: "Админ-панель", icon: ShieldCheck }] : []),
   ] as const;
 
+  const SidebarContent = () => (
+    <div className="h-full flex flex-col bg-sidebar text-sidebar-foreground">
+      <div className="px-5 py-5 flex items-center gap-3 border-b border-sidebar-border">
+        <div className="h-9 w-9 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground grid place-items-center">
+          <Rocket className="h-5 w-5" />
+        </div>
+        <div>
+          <div className="font-bold leading-tight">ElecardSpace</div>
+          <div className="text-[11px] text-sidebar-foreground/60">internal portal</div>
+        </div>
+      </div>
+
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+        {items.map((it) => {
+          const active = pathname === it.to || pathname.startsWith(it.to + "/");
+          return (
+            <Link
+              key={it.to}
+              to={it.to}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+                active
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium"
+                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+              )}
+            >
+              <it.icon className="h-4 w-4" />
+              {it.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="p-3 border-t border-sidebar-border space-y-3">
+        <div className="flex items-center gap-3 rounded-lg bg-sidebar-accent/60 p-2.5">
+          <img src={currentUser.avatar} alt="" className="h-9 w-9 rounded-full object-cover" />
+          <div className="min-w-0">
+            <div className="text-sm font-medium truncate">{currentUser.name}</div>
+            <div className="text-[11px] text-sidebar-foreground/60 truncate">{currentUser.position}</div>
+          </div>
+        </div>
+        <div className="flex items-center justify-between rounded-lg bg-sidebar-primary/15 px-3 py-2">
+          <div className="flex items-center gap-2 text-sm">
+            <Coins className="h-4 w-4 text-coin" />
+            <span className="font-semibold">{currentUser.balance}</span>
+          </div>
+          <span className="text-[10px] uppercase tracking-wider text-sidebar-foreground/60">bonus</span>
+        </div>
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          onClick={() => { logout(); navigate({ to: "/auth" }); }}
+        >
+          <LogOut className="h-4 w-4 mr-2" /> Выйти
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen flex bg-background">
-      <aside className="w-64 shrink-0 bg-sidebar text-sidebar-foreground flex flex-col">
-        <div className="px-5 py-5 flex items-center gap-3 border-b border-sidebar-border">
-          <div className="h-9 w-9 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground grid place-items-center">
-            <Rocket className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="font-bold leading-tight">ElecardSpace</div>
-            <div className="text-[11px] text-sidebar-foreground/60">internal portal</div>
-          </div>
-        </div>
-
-        <nav className="flex-1 p-3 space-y-1">
-          {items.map((it) => {
-            const active = pathname === it.to || pathname.startsWith(it.to + "/");
-            return (
-              <Link
-                key={it.to}
-                to={it.to}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
-                  active
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                )}
-              >
-                <it.icon className="h-4 w-4" />
-                {it.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="p-3 border-t border-sidebar-border space-y-3">
-          <div className="flex items-center gap-3 rounded-lg bg-sidebar-accent/60 p-2.5">
-            <img src={currentUser.avatar} alt="" className="h-9 w-9 rounded-full" />
-            <div className="min-w-0">
-              <div className="text-sm font-medium truncate">{currentUser.name}</div>
-              <div className="text-[11px] text-sidebar-foreground/60 truncate">{currentUser.position}</div>
-            </div>
-          </div>
-          <div className="flex items-center justify-between rounded-lg bg-sidebar-primary/15 px-3 py-2">
-            <div className="flex items-center gap-2 text-sm">
-              <Coins className="h-4 w-4 text-coin" />
-              <span className="font-semibold">{currentUser.balance}</span>
-            </div>
-            <span className="text-[10px] uppercase tracking-wider text-sidebar-foreground/60">bonus</span>
-          </div>
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-            onClick={() => { logout(); navigate({ to: "/auth" }); }}
-          >
-            <LogOut className="h-4 w-4 mr-2" /> Выйти
-          </Button>
-        </div>
+    <div className="min-h-[100dvh] flex bg-background">
+      <aside className="hidden md:flex w-64 shrink-0 flex-col">
+        <SidebarContent />
       </aside>
 
-      <main className="flex-1 min-w-0 overflow-x-hidden">
+      {/* Mobile top bar */}
+      <div className="md:hidden fixed top-0 inset-x-0 z-40 h-14 bg-sidebar text-sidebar-foreground flex items-center justify-between px-3 border-b border-sidebar-border safe-pt">
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-72 bg-sidebar border-sidebar-border">
+            <SheetTitle className="sr-only">Меню навигации</SheetTitle>
+            <SidebarContent />
+          </SheetContent>
+        </Sheet>
+        <div className="flex items-center gap-2">
+          <div className="h-7 w-7 rounded-md bg-sidebar-primary text-sidebar-primary-foreground grid place-items-center">
+            <Rocket className="h-4 w-4" />
+          </div>
+          <span className="font-bold text-sm">ElecardSpace</span>
+        </div>
+        <div className="flex items-center gap-1.5 rounded-full bg-sidebar-primary/20 px-2.5 py-1 text-xs">
+          <Coins className="h-3.5 w-3.5 text-coin" />
+          <span className="font-semibold">{currentUser.balance}</span>
+        </div>
+      </div>
+
+      <main className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
         <Outlet />
       </main>
     </div>
   );
 }
-

@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppTeamRouteImport } from './routes/_app.team'
 import { Route as AppShopRouteImport } from './routes/_app.shop'
 import { Route as AppProfileRouteImport } from './routes/_app.profile'
+import { Route as AppLinksRouteImport } from './routes/_app.links'
 import { Route as AppJobsRouteImport } from './routes/_app.jobs'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppAdminRouteImport } from './routes/_app.admin'
@@ -48,6 +49,11 @@ const AppProfileRoute = AppProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AppRoute,
 } as any)
+const AppLinksRoute = AppLinksRouteImport.update({
+  id: '/links',
+  path: '/links',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppJobsRoute = AppJobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AppAdminRoute
   '/dashboard': typeof AppDashboardRoute
   '/jobs': typeof AppJobsRoute
+  '/links': typeof AppLinksRoute
   '/profile': typeof AppProfileRoute
   '/shop': typeof AppShopRoute
   '/team': typeof AppTeamRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AppAdminRoute
   '/dashboard': typeof AppDashboardRoute
   '/jobs': typeof AppJobsRoute
+  '/links': typeof AppLinksRoute
   '/profile': typeof AppProfileRoute
   '/shop': typeof AppShopRoute
   '/team': typeof AppTeamRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/_app/admin': typeof AppAdminRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/jobs': typeof AppJobsRoute
+  '/_app/links': typeof AppLinksRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/shop': typeof AppShopRoute
   '/_app/team': typeof AppTeamRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/jobs'
+    | '/links'
     | '/profile'
     | '/shop'
     | '/team'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/jobs'
+    | '/links'
     | '/profile'
     | '/shop'
     | '/team'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
     | '/_app/admin'
     | '/_app/dashboard'
     | '/_app/jobs'
+    | '/_app/links'
     | '/_app/profile'
     | '/_app/shop'
     | '/_app/team'
@@ -180,6 +192,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProfileRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/links': {
+      id: '/_app/links'
+      path: '/links'
+      fullPath: '/links'
+      preLoaderRoute: typeof AppLinksRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/jobs': {
       id: '/_app/jobs'
       path: '/jobs'
@@ -208,6 +227,7 @@ interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppJobsRoute: typeof AppJobsRoute
+  AppLinksRoute: typeof AppLinksRoute
   AppProfileRoute: typeof AppProfileRoute
   AppShopRoute: typeof AppShopRoute
   AppTeamRoute: typeof AppTeamRoute
@@ -217,6 +237,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminRoute: AppAdminRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppJobsRoute: AppJobsRoute,
+  AppLinksRoute: AppLinksRoute,
   AppProfileRoute: AppProfileRoute,
   AppShopRoute: AppShopRoute,
   AppTeamRoute: AppTeamRoute,

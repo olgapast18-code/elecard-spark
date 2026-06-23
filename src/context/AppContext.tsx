@@ -67,6 +67,14 @@ export type Announcement = {
   comments: Comment[];
 };
 
+export type UsefulLink = {
+  id: string;
+  title: string;
+  url: string;
+  description?: string;
+  category?: string;
+};
+
 export const DEPARTMENTS = [
   "Руководство",
   "Разработка",
@@ -94,7 +102,7 @@ const seedUsers: User[] = [
     id: "u-admin",
     name: "Ольга Пастушкова",
     email: "olga.pastushkova@elecard.ru",
-    password: "214813991ola",
+    password: "12345elecard",
     role: "admin",
     department: "Руководство",
     position: "HR Director",
@@ -320,11 +328,21 @@ const seedAnnouncements: Announcement[] = [
   { id: "a3", title: "Открыт магазин бонусов", body: "Тратьте накопленные ElecardBonus на мерч и обучение.", date: "2026-06-01", comments: [] },
 ];
 
+const seedLinks: UsefulLink[] = [
+  { id: "l1", title: "Корпоративная почта", url: "https://mail.elecard.ru", description: "Веб-интерфейс почты", category: "Сервисы" },
+  { id: "l2", title: "База знаний (Confluence)", url: "https://wiki.elecard.ru", description: "Документация, регламенты, инструкции", category: "Документация" },
+  { id: "l3", title: "Трекер задач (Jira)", url: "https://jira.elecard.ru", description: "Задачи, спринты и баги", category: "Сервисы" },
+  { id: "l4", title: "HR-портал", url: "https://hr.elecard.ru", description: "Заявления, отпуска, справки", category: "HR" },
+  { id: "l5", title: "Бронирование переговорок", url: "https://rooms.elecard.ru", description: "Календарь свободных комнат", category: "Офис" },
+  { id: "l6", title: "Служба поддержки IT", url: "https://help.elecard.ru", description: "Создать тикет в IT-отдел", category: "Поддержка" },
+];
+
 type Ctx = {
   users: User[];
   products: Product[];
   jobs: Job[];
   announcements: Announcement[];
+  links: UsefulLink[];
   currentUserId: string | null;
   currentUser: User | null;
   isAdmin: boolean;
@@ -347,6 +365,9 @@ type Ctx = {
   addAnnouncement: (data: { title: string; body: string }) => void;
   updateAnnouncement: (id: string, patch: Partial<Pick<Announcement, "title" | "body">>) => void;
   deleteAnnouncement: (id: string) => void;
+  addLink: (data: Omit<UsefulLink, "id">) => void;
+  updateLink: (id: string, patch: Partial<UsefulLink>) => void;
+  deleteLink: (id: string) => void;
 };
 
 const AppCtx = createContext<Ctx | null>(null);
@@ -356,7 +377,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<Product[]>(seedProducts);
   const [jobs, setJobs] = useState<Job[]>(seedJobs);
   const [announcements, setAnnouncements] = useState<Announcement[]>(seedAnnouncements);
+  const [links, setLinks] = useState<UsefulLink[]>(seedLinks);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
 
   const currentUser = useMemo(
     () => users.find((u) => u.id === currentUserId) ?? null,
@@ -368,6 +391,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     products,
     jobs,
     announcements,
+    links,
     currentUserId,
     currentUser,
     isAdmin: currentUser?.role === "admin",
@@ -489,6 +513,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     updateAnnouncement: (id, patch) => setAnnouncements((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a))),
     deleteAnnouncement: (id) => setAnnouncements((prev) => prev.filter((a) => a.id !== id)),
+    addLink: (data) => setLinks((prev) => [...prev, { ...data, id: "l-" + Math.random().toString(36).slice(2, 7) }]),
+    updateLink: (id, patch) => setLinks((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l))),
+    deleteLink: (id) => setLinks((prev) => prev.filter((l) => l.id !== id)),
   };
 
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;

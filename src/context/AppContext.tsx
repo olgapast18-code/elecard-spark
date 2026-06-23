@@ -67,6 +67,14 @@ export type Announcement = {
   comments: Comment[];
 };
 
+export type UsefulLink = {
+  id: string;
+  title: string;
+  url: string;
+  description?: string;
+  category?: string;
+};
+
 export const DEPARTMENTS = [
   "Руководство",
   "Разработка",

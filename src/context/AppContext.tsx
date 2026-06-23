@@ -391,6 +391,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     products,
     jobs,
     announcements,
+    links,
     currentUserId,
     currentUser,
     isAdmin: currentUser?.role === "admin",

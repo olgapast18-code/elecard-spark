@@ -24,7 +24,7 @@ function Dashboard() {
   const team = users.filter((u) => u.department === currentUser.department && u.id !== currentUser.id);
 
   return (
-    <div className="p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-8 space-y-6 max-w-7xl mx-auto">
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Привет, {currentUser.name.split(" ")[0]} 👋</h1>

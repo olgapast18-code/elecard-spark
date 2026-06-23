@@ -342,6 +342,7 @@ type Ctx = {
   products: Product[];
   jobs: Job[];
   announcements: Announcement[];
+  links: UsefulLink[];
   currentUserId: string | null;
   currentUser: User | null;
   isAdmin: boolean;
@@ -364,6 +365,9 @@ type Ctx = {
   addAnnouncement: (data: { title: string; body: string }) => void;
   updateAnnouncement: (id: string, patch: Partial<Pick<Announcement, "title" | "body">>) => void;
   deleteAnnouncement: (id: string) => void;
+  addLink: (data: Omit<UsefulLink, "id">) => void;
+  updateLink: (id: string, patch: Partial<UsefulLink>) => void;
+  deleteLink: (id: string) => void;
 };
 
 const AppCtx = createContext<Ctx | null>(null);
@@ -373,7 +377,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<Product[]>(seedProducts);
   const [jobs, setJobs] = useState<Job[]>(seedJobs);
   const [announcements, setAnnouncements] = useState<Announcement[]>(seedAnnouncements);
+  const [links, setLinks] = useState<UsefulLink[]>(seedLinks);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
 
   const currentUser = useMemo(
     () => users.find((u) => u.id === currentUserId) ?? null,

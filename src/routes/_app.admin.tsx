@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
-import { useApp, DEPARTMENTS, type Product, type Job, type User, type Announcement, type UsefulLink } from "@/context/AppContext";
+import { useApp, DEPARTMENTS, type Product, type Job, type User, type Announcement, type UsefulLink, type BonusRule } from "@/context/AppContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { ShieldCheck, Coins, UserPlus, Pencil, PackagePlus, Sparkles, Trash2, Network, Megaphone, Plus, Camera, Target, Link2, ExternalLink } from "lucide-react";
+import { ShieldCheck, Coins, UserPlus, Pencil, PackagePlus, Sparkles, Trash2, Network, Megaphone, Plus, Camera, Target, Link2, ExternalLink, Cake, Building2, ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/admin")({
@@ -39,30 +39,23 @@ function AdminPage() {
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="employees">Сотрудники</TabsTrigger>
           <TabsTrigger value="structure">Структура</TabsTrigger>
+          <TabsTrigger value="departments">Отделы</TabsTrigger>
           <TabsTrigger value="news">Новости</TabsTrigger>
+          <TabsTrigger value="birthdays">Дни рождения</TabsTrigger>
           <TabsTrigger value="tasks">Задачи</TabsTrigger>
           <TabsTrigger value="grant">Бонусы</TabsTrigger>
+          <TabsTrigger value="bonusrules">Как заработать</TabsTrigger>
           <TabsTrigger value="shop">Магазин</TabsTrigger>
           <TabsTrigger value="jobs">Должности</TabsTrigger>
           <TabsTrigger value="links">Ссылки</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="employees" className="space-y-4 pt-4">
-          <EmployeesPanel />
-        </TabsContent>
-
-        <TabsContent value="structure" className="pt-4">
-          <StructurePanel />
-        </TabsContent>
-
-        <TabsContent value="news" className="pt-4">
-          <NewsPanel />
-        </TabsContent>
-
-        <TabsContent value="tasks" className="pt-4">
-          <TasksPanel />
-        </TabsContent>
-
+        <TabsContent value="employees" className="space-y-4 pt-4"><EmployeesPanel /></TabsContent>
+        <TabsContent value="structure" className="pt-4"><StructurePanel /></TabsContent>
+        <TabsContent value="departments" className="pt-4"><DepartmentsPanel /></TabsContent>
+        <TabsContent value="news" className="pt-4"><NewsPanel /></TabsContent>
+        <TabsContent value="birthdays" className="pt-4"><BirthdaysPanel /></TabsContent>
+        <TabsContent value="tasks" className="pt-4"><TasksPanel /></TabsContent>
         <TabsContent value="grant" className="pt-4">
           <GrantPanel users={app.users.filter((u) => u.role !== "admin")} onGrant={(uid, amt, reason) => {
             app.grantBonus(uid, amt, reason);
@@ -70,18 +63,10 @@ function AdminPage() {
             toast.success(`Начислено ${amt} бонусов`, { description: `${u?.name} · ${reason}` });
           }} />
         </TabsContent>
-
-        <TabsContent value="shop" className="pt-4">
-          <ShopAdmin />
-        </TabsContent>
-
-        <TabsContent value="jobs" className="pt-4">
-          <JobsAdmin />
-        </TabsContent>
-
-        <TabsContent value="links" className="pt-4">
-          <LinksAdmin />
-        </TabsContent>
+        <TabsContent value="bonusrules" className="pt-4"><BonusRulesPanel /></TabsContent>
+        <TabsContent value="shop" className="pt-4"><ShopAdmin /></TabsContent>
+        <TabsContent value="jobs" className="pt-4"><JobsAdmin /></TabsContent>
+        <TabsContent value="links" className="pt-4"><LinksAdmin /></TabsContent>
       </Tabs>
     </div>
   );

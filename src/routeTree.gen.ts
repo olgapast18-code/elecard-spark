@@ -15,9 +15,14 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppTeamRouteImport } from './routes/_app.team'
 import { Route as AppShopRouteImport } from './routes/_app.shop'
 import { Route as AppProfileRouteImport } from './routes/_app.profile'
+import { Route as AppMessengerRouteImport } from './routes/_app.messenger'
 import { Route as AppLinksRouteImport } from './routes/_app.links'
 import { Route as AppJobsRouteImport } from './routes/_app.jobs'
+import { Route as AppHomeRouteImport } from './routes/_app.home'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
+import { Route as AppCartRouteImport } from './routes/_app.cart'
+import { Route as AppBonusesRouteImport } from './routes/_app.bonuses'
+import { Route as AppBirthdaysRouteImport } from './routes/_app.birthdays'
 import { Route as AppAdminRouteImport } from './routes/_app.admin'
 
 const AuthRoute = AuthRouteImport.update({
@@ -49,6 +54,11 @@ const AppProfileRoute = AppProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMessengerRoute = AppMessengerRouteImport.update({
+  id: '/messenger',
+  path: '/messenger',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppLinksRoute = AppLinksRouteImport.update({
   id: '/links',
   path: '/links',
@@ -59,9 +69,29 @@ const AppJobsRoute = AppJobsRouteImport.update({
   path: '/jobs',
   getParentRoute: () => AppRoute,
 } as any)
+const AppHomeRoute = AppHomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCartRoute = AppCartRouteImport.update({
+  id: '/cart',
+  path: '/cart',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBonusesRoute = AppBonusesRouteImport.update({
+  id: '/bonuses',
+  path: '/bonuses',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBirthdaysRoute = AppBirthdaysRouteImport.update({
+  id: '/birthdays',
+  path: '/birthdays',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAdminRoute = AppAdminRouteImport.update({
@@ -74,9 +104,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AppAdminRoute
+  '/birthdays': typeof AppBirthdaysRoute
+  '/bonuses': typeof AppBonusesRoute
+  '/cart': typeof AppCartRoute
   '/dashboard': typeof AppDashboardRoute
+  '/home': typeof AppHomeRoute
   '/jobs': typeof AppJobsRoute
   '/links': typeof AppLinksRoute
+  '/messenger': typeof AppMessengerRoute
   '/profile': typeof AppProfileRoute
   '/shop': typeof AppShopRoute
   '/team': typeof AppTeamRoute
@@ -85,9 +120,14 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AppAdminRoute
+  '/birthdays': typeof AppBirthdaysRoute
+  '/bonuses': typeof AppBonusesRoute
+  '/cart': typeof AppCartRoute
   '/dashboard': typeof AppDashboardRoute
+  '/home': typeof AppHomeRoute
   '/jobs': typeof AppJobsRoute
   '/links': typeof AppLinksRoute
+  '/messenger': typeof AppMessengerRoute
   '/profile': typeof AppProfileRoute
   '/shop': typeof AppShopRoute
   '/team': typeof AppTeamRoute
@@ -98,9 +138,14 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/_app/admin': typeof AppAdminRoute
+  '/_app/birthdays': typeof AppBirthdaysRoute
+  '/_app/bonuses': typeof AppBonusesRoute
+  '/_app/cart': typeof AppCartRoute
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/home': typeof AppHomeRoute
   '/_app/jobs': typeof AppJobsRoute
   '/_app/links': typeof AppLinksRoute
+  '/_app/messenger': typeof AppMessengerRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/shop': typeof AppShopRoute
   '/_app/team': typeof AppTeamRoute
@@ -111,9 +156,14 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/admin'
+    | '/birthdays'
+    | '/bonuses'
+    | '/cart'
     | '/dashboard'
+    | '/home'
     | '/jobs'
     | '/links'
+    | '/messenger'
     | '/profile'
     | '/shop'
     | '/team'
@@ -122,9 +172,14 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/admin'
+    | '/birthdays'
+    | '/bonuses'
+    | '/cart'
     | '/dashboard'
+    | '/home'
     | '/jobs'
     | '/links'
+    | '/messenger'
     | '/profile'
     | '/shop'
     | '/team'
@@ -134,9 +189,14 @@ export interface FileRouteTypes {
     | '/_app'
     | '/auth'
     | '/_app/admin'
+    | '/_app/birthdays'
+    | '/_app/bonuses'
+    | '/_app/cart'
     | '/_app/dashboard'
+    | '/_app/home'
     | '/_app/jobs'
     | '/_app/links'
+    | '/_app/messenger'
     | '/_app/profile'
     | '/_app/shop'
     | '/_app/team'
@@ -192,6 +252,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProfileRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/messenger': {
+      id: '/_app/messenger'
+      path: '/messenger'
+      fullPath: '/messenger'
+      preLoaderRoute: typeof AppMessengerRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/links': {
       id: '/_app/links'
       path: '/links'
@@ -206,11 +273,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppJobsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/home': {
+      id: '/_app/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof AppHomeRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/dashboard': {
       id: '/_app/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/cart': {
+      id: '/_app/cart'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof AppCartRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/bonuses': {
+      id: '/_app/bonuses'
+      path: '/bonuses'
+      fullPath: '/bonuses'
+      preLoaderRoute: typeof AppBonusesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/birthdays': {
+      id: '/_app/birthdays'
+      path: '/birthdays'
+      fullPath: '/birthdays'
+      preLoaderRoute: typeof AppBirthdaysRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/admin': {
@@ -225,9 +320,14 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRoute
+  AppBirthdaysRoute: typeof AppBirthdaysRoute
+  AppBonusesRoute: typeof AppBonusesRoute
+  AppCartRoute: typeof AppCartRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppHomeRoute: typeof AppHomeRoute
   AppJobsRoute: typeof AppJobsRoute
   AppLinksRoute: typeof AppLinksRoute
+  AppMessengerRoute: typeof AppMessengerRoute
   AppProfileRoute: typeof AppProfileRoute
   AppShopRoute: typeof AppShopRoute
   AppTeamRoute: typeof AppTeamRoute
@@ -235,9 +335,14 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAdminRoute: AppAdminRoute,
+  AppBirthdaysRoute: AppBirthdaysRoute,
+  AppBonusesRoute: AppBonusesRoute,
+  AppCartRoute: AppCartRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppHomeRoute: AppHomeRoute,
   AppJobsRoute: AppJobsRoute,
   AppLinksRoute: AppLinksRoute,
+  AppMessengerRoute: AppMessengerRoute,
   AppProfileRoute: AppProfileRoute,
   AppShopRoute: AppShopRoute,
   AppTeamRoute: AppTeamRoute,

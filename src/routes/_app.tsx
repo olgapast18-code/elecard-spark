@@ -1,7 +1,8 @@
 import { createFileRoute, Outlet, useNavigate, Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useApp } from "@/context/AppContext";
-import { LayoutDashboard, Store, BriefcaseBusiness, Users, LogOut, Rocket, Coins, ShieldCheck, UserCircle, Link2, Menu } from "lucide-react";
+import { LayoutDashboard, Store, BriefcaseBusiness, Users, LogOut, Rocket, Coins, ShieldCheck, UserCircle, Link2, Menu, Home, Cake, MessageSquare, Sparkles, ShoppingCart } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
@@ -11,7 +12,7 @@ export const Route = createFileRoute("/_app")({
 });
 
 function AppLayout() {
-  const { currentUser, logout, isAdmin } = useApp();
+  const { currentUser, logout, isAdmin, unreadCount, cart } = useApp();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -25,13 +26,18 @@ function AppLayout() {
   if (!currentUser) return null;
 
   const items = [
-    { to: "/dashboard", label: "Личный кабинет", icon: LayoutDashboard },
-    { to: "/team", label: "Наша команда", icon: Users },
-    { to: "/shop", label: "Магазин бонусов", icon: Store },
-    { to: "/jobs", label: "Карта должностей", icon: BriefcaseBusiness },
-    { to: "/links", label: "Полезные ссылки", icon: Link2 },
-    { to: "/profile", label: "Моя карточка", icon: UserCircle },
-    ...(isAdmin ? [{ to: "/admin", label: "Админ-панель", icon: ShieldCheck }] : []),
+    { to: "/home", label: "Главная страница", icon: Home, badge: 0 },
+    { to: "/dashboard", label: "Личный кабинет", icon: LayoutDashboard, badge: 0 },
+    { to: "/team", label: "Наша команда", icon: Users, badge: 0 },
+    { to: "/birthdays", label: "Календарь именинников", icon: Cake, badge: 0 },
+    { to: "/messenger", label: "Мессенджер", icon: MessageSquare, badge: unreadCount },
+    { to: "/shop", label: "Магазин бонусов", icon: Store, badge: 0 },
+    { to: "/cart", label: "Корзина", icon: ShoppingCart, badge: cart.length },
+    { to: "/bonuses", label: "Как заработать бонусы", icon: Sparkles, badge: 0 },
+    { to: "/jobs", label: "Карта должностей", icon: BriefcaseBusiness, badge: 0 },
+    { to: "/links", label: "Полезные ссылки", icon: Link2, badge: 0 },
+    { to: "/profile", label: "Моя карточка", icon: UserCircle, badge: 0 },
+    ...(isAdmin ? [{ to: "/admin", label: "Админ-панель", icon: ShieldCheck, badge: 0 }] : []),
   ] as const;
 
   const SidebarContent = () => (
@@ -60,8 +66,9 @@ function AppLayout() {
                   : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
               )}
             >
-              <it.icon className="h-4 w-4" />
-              {it.label}
+              <it.icon className="h-4 w-4 shrink-0" />
+              <span className="flex-1 truncate">{it.label}</span>
+              {it.badge > 0 && <Badge className="bg-brand text-primary-foreground h-5 px-1.5 text-[10px]">{it.badge}</Badge>}
             </Link>
           );
         })}

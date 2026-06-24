@@ -163,6 +163,7 @@ function EmployeeRow({ user, onSave, onDelete }: { user: User; onSave: (p: Parti
     name: user.name, position: user.position, department: user.department, balance: user.balance,
     bio: user.bio ?? "", responsibilities: (user.responsibilities ?? []).join(", "),
     managerId: user.managerId ?? "", avatar: user.avatar,
+    startDate: user.startDate ?? "", birthday: user.birthday ?? "",
   });
   const [draft, setDraft] = useState(fresh());
   const managers = users.filter((u) => u.id !== user.id);
@@ -212,6 +213,10 @@ function EmployeeRow({ user, onSave, onDelete }: { user: User; onSave: (p: Parti
               </Field>
               <Field label="О себе"><Textarea rows={3} value={draft.bio} onChange={(e) => setDraft({ ...draft, bio: e.target.value })} /></Field>
               <Field label="Обязанности (через запятую)"><Textarea rows={2} value={draft.responsibilities} onChange={(e) => setDraft({ ...draft, responsibilities: e.target.value })} /></Field>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Дата начала работы"><Input type="date" value={draft.startDate} onChange={(e) => setDraft({ ...draft, startDate: e.target.value })} /></Field>
+                <Field label="День рождения"><Input type="date" value={draft.birthday} onChange={(e) => setDraft({ ...draft, birthday: e.target.value })} /></Field>
+              </div>
               <Field label="Баланс"><Input type="number" value={draft.balance} onChange={(e) => setDraft({ ...draft, balance: +e.target.value })} /></Field>
               <Button className="w-full" onClick={() => {
                 onSave({
@@ -220,6 +225,8 @@ function EmployeeRow({ user, onSave, onDelete }: { user: User; onSave: (p: Parti
                   responsibilities: draft.responsibilities.split(",").map((s) => s.trim()).filter(Boolean),
                   managerId: draft.managerId || null,
                   avatar: draft.avatar,
+                  startDate: draft.startDate,
+                  birthday: draft.birthday || undefined,
                 });
                 setOpen(false);
               }}>Сохранить</Button>

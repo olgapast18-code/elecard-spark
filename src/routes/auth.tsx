@@ -28,7 +28,7 @@ function AuthPage() {
     const u = login(loginEmail, loginPass);
     if (!u) return toast.error("Неверные email или пароль");
     toast.success(`Добро пожаловать, ${u.name}!`);
-    navigate({ to: "/dashboard" });
+    navigate({ to: "/home" });
   };
 
   const handleRegister = (e: React.FormEvent) => {
@@ -37,7 +37,7 @@ function AuthPage() {
     const u = register(form);
     toast.success(`Аккаунт создан. +100 ElecardBonus 🎉`);
     void u;
-    navigate({ to: "/dashboard" });
+    navigate({ to: "/home" });
   };
 
   return (

@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Coins, Mail, Send, Calendar, TrendingUp, TrendingDown, Megaphone, Users as UsersIcon, Target, Network, MessageSquare } from "lucide-react";
 import { EmployeeCard } from "@/components/EmployeeCard";
 import { OrgChart } from "@/components/OrgChart";
+import { EmojiPicker } from "@/components/EmojiPicker";
 
 export const Route = createFileRoute("/_app/dashboard")({
   component: Dashboard,
@@ -68,7 +69,7 @@ function Dashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Network className="h-5 w-5 text-brand" /> Структура компании</CardTitle>
+          <CardTitle className="flex items-center gap-2"><Network className="h-5 w-5 text-brand" /> Наша компания</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-xs text-muted-foreground mb-4">Кликните на сотрудника, чтобы открыть его карточку</p>
@@ -160,7 +161,8 @@ function Dashboard() {
               <li key={a.id} className="border-l-2 border-brand pl-4">
                 <div className="text-sm font-semibold">{a.title}</div>
                 <div className="text-xs text-muted-foreground mb-1">{new Date(a.date).toLocaleDateString("ru-RU")}</div>
-                <div className="text-sm text-foreground/80">{a.body}</div>
+                {a.image && <img src={a.image} alt="" className="my-2 rounded-lg max-h-72 w-full object-cover" />}
+                <div className="text-sm text-foreground/80 whitespace-pre-wrap">{a.body}</div>
 
                 <div className="mt-3 space-y-2">
                   {a.comments.length > 0 && (
@@ -173,7 +175,7 @@ function Dashboard() {
                               <span className="font-medium">{c.authorName}</span>
                               <span className="text-muted-foreground"> · {new Date(c.date).toLocaleString("ru-RU")}</span>
                             </div>
-                            <div className="text-sm">{c.body}</div>
+                            <div className="text-sm whitespace-pre-wrap">{c.body}</div>
                           </div>
                         </li>
                       ))}
@@ -188,17 +190,20 @@ function Dashboard() {
                       rows={2}
                       className="text-sm"
                     />
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        const body = (draft[a.id] ?? "").trim();
-                        if (!body) return;
-                        addComment(a.id, body);
-                        setDraft({ ...draft, [a.id]: "" });
-                      }}
-                    >
-                      <MessageSquare className="h-4 w-4 mr-1" /> Отправить
-                    </Button>
+                    <div className="flex flex-col gap-1">
+                      <EmojiPicker onPick={(e) => setDraft({ ...draft, [a.id]: (draft[a.id] ?? "") + e })} />
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          const body = (draft[a.id] ?? "").trim();
+                          if (!body) return;
+                          addComment(a.id, body);
+                          setDraft({ ...draft, [a.id]: "" });
+                        }}
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </li>

@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
-import { useApp, DEPARTMENTS, type Product, type Job, type User, type Announcement, type UsefulLink } from "@/context/AppContext";
+import { useApp, DEPARTMENTS, type Product, type Job, type User, type Announcement, type UsefulLink, type BonusRule } from "@/context/AppContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { ShieldCheck, Coins, UserPlus, Pencil, PackagePlus, Sparkles, Trash2, Network, Megaphone, Plus, Camera, Target, Link2, ExternalLink } from "lucide-react";
+import { ShieldCheck, Coins, UserPlus, Pencil, PackagePlus, Sparkles, Trash2, Network, Megaphone, Plus, Camera, Target, Link2, ExternalLink, Cake, Building2, ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/admin")({
@@ -39,30 +39,23 @@ function AdminPage() {
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="employees">Сотрудники</TabsTrigger>
           <TabsTrigger value="structure">Структура</TabsTrigger>
+          <TabsTrigger value="departments">Отделы</TabsTrigger>
           <TabsTrigger value="news">Новости</TabsTrigger>
+          <TabsTrigger value="birthdays">Дни рождения</TabsTrigger>
           <TabsTrigger value="tasks">Задачи</TabsTrigger>
           <TabsTrigger value="grant">Бонусы</TabsTrigger>
+          <TabsTrigger value="bonusrules">Как заработать</TabsTrigger>
           <TabsTrigger value="shop">Магазин</TabsTrigger>
           <TabsTrigger value="jobs">Должности</TabsTrigger>
           <TabsTrigger value="links">Ссылки</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="employees" className="space-y-4 pt-4">
-          <EmployeesPanel />
-        </TabsContent>
-
-        <TabsContent value="structure" className="pt-4">
-          <StructurePanel />
-        </TabsContent>
-
-        <TabsContent value="news" className="pt-4">
-          <NewsPanel />
-        </TabsContent>
-
-        <TabsContent value="tasks" className="pt-4">
-          <TasksPanel />
-        </TabsContent>
-
+        <TabsContent value="employees" className="space-y-4 pt-4"><EmployeesPanel /></TabsContent>
+        <TabsContent value="structure" className="pt-4"><StructurePanel /></TabsContent>
+        <TabsContent value="departments" className="pt-4"><DepartmentsPanel /></TabsContent>
+        <TabsContent value="news" className="pt-4"><NewsPanel /></TabsContent>
+        <TabsContent value="birthdays" className="pt-4"><BirthdaysPanel /></TabsContent>
+        <TabsContent value="tasks" className="pt-4"><TasksPanel /></TabsContent>
         <TabsContent value="grant" className="pt-4">
           <GrantPanel users={app.users.filter((u) => u.role !== "admin")} onGrant={(uid, amt, reason) => {
             app.grantBonus(uid, amt, reason);
@@ -70,18 +63,10 @@ function AdminPage() {
             toast.success(`Начислено ${amt} бонусов`, { description: `${u?.name} · ${reason}` });
           }} />
         </TabsContent>
-
-        <TabsContent value="shop" className="pt-4">
-          <ShopAdmin />
-        </TabsContent>
-
-        <TabsContent value="jobs" className="pt-4">
-          <JobsAdmin />
-        </TabsContent>
-
-        <TabsContent value="links" className="pt-4">
-          <LinksAdmin />
-        </TabsContent>
+        <TabsContent value="bonusrules" className="pt-4"><BonusRulesPanel /></TabsContent>
+        <TabsContent value="shop" className="pt-4"><ShopAdmin /></TabsContent>
+        <TabsContent value="jobs" className="pt-4"><JobsAdmin /></TabsContent>
+        <TabsContent value="links" className="pt-4"><LinksAdmin /></TabsContent>
       </Tabs>
     </div>
   );
@@ -178,6 +163,7 @@ function EmployeeRow({ user, onSave, onDelete }: { user: User; onSave: (p: Parti
     name: user.name, position: user.position, department: user.department, balance: user.balance,
     bio: user.bio ?? "", responsibilities: (user.responsibilities ?? []).join(", "),
     managerId: user.managerId ?? "", avatar: user.avatar,
+    startDate: user.startDate ?? "", birthday: user.birthday ?? "",
   });
   const [draft, setDraft] = useState(fresh());
   const managers = users.filter((u) => u.id !== user.id);
@@ -227,6 +213,10 @@ function EmployeeRow({ user, onSave, onDelete }: { user: User; onSave: (p: Parti
               </Field>
               <Field label="О себе"><Textarea rows={3} value={draft.bio} onChange={(e) => setDraft({ ...draft, bio: e.target.value })} /></Field>
               <Field label="Обязанности (через запятую)"><Textarea rows={2} value={draft.responsibilities} onChange={(e) => setDraft({ ...draft, responsibilities: e.target.value })} /></Field>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Дата начала работы"><Input type="date" value={draft.startDate} onChange={(e) => setDraft({ ...draft, startDate: e.target.value })} /></Field>
+                <Field label="День рождения"><Input type="date" value={draft.birthday} onChange={(e) => setDraft({ ...draft, birthday: e.target.value })} /></Field>
+              </div>
               <Field label="Баланс"><Input type="number" value={draft.balance} onChange={(e) => setDraft({ ...draft, balance: +e.target.value })} /></Field>
               <Button className="w-full" onClick={() => {
                 onSave({
@@ -235,6 +225,8 @@ function EmployeeRow({ user, onSave, onDelete }: { user: User; onSave: (p: Parti
                   responsibilities: draft.responsibilities.split(",").map((s) => s.trim()).filter(Boolean),
                   managerId: draft.managerId || null,
                   avatar: draft.avatar,
+                  startDate: draft.startDate,
+                  birthday: draft.birthday || undefined,
                 });
                 setOpen(false);
               }}>Сохранить</Button>
@@ -301,6 +293,15 @@ function NewsPanel() {
   const { announcements, addAnnouncement, updateAnnouncement, deleteAnnouncement } = useApp();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [image, setImage] = useState<string>("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const onFile = (f: File) => {
+    if (f.size > 4 * 1024 * 1024) return toast.error("Файл больше 4МБ");
+    const r = new FileReader();
+    r.onload = () => setImage(String(r.result));
+    r.readAsDataURL(f);
+  };
 
   return (
     <div className="grid lg:grid-cols-[1fr_360px] gap-6">
@@ -320,12 +321,24 @@ function NewsPanel() {
         <CardHeader><CardTitle className="flex items-center gap-2"><Plus className="h-5 w-5 text-brand" /> Новая публикация</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <Field label="Заголовок"><Input value={title} onChange={(e) => setTitle(e.target.value)} /></Field>
-          <Field label="Текст"><Textarea rows={5} value={body} onChange={(e) => setBody(e.target.value)} /></Field>
+          <Field label="Текст"><Textarea rows={5} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Поддерживаются эмодзи 🎉✨" /></Field>
+          <div>
+            <Label className="text-xs">Картинка (необязательно)</Label>
+            <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
+            {image ? (
+              <div className="relative mt-2">
+                <img src={image} alt="" className="rounded-lg max-h-40 w-full object-cover" />
+                <Button size="icon" variant="ghost" className="absolute top-1 right-1 bg-background/80" onClick={() => setImage("")}><X className="h-4 w-4" /></Button>
+              </div>
+            ) : (
+              <Button variant="outline" size="sm" className="mt-1" onClick={() => fileRef.current?.click()}><ImagePlus className="h-4 w-4 mr-2" />Загрузить фото</Button>
+            )}
+          </div>
           <Button className="w-full" onClick={() => {
             if (!title.trim() || !body.trim()) return toast.error("Заполните заголовок и текст");
-            addAnnouncement({ title: title.trim(), body: body.trim() });
+            addAnnouncement({ title: title.trim(), body: body.trim(), image: image || undefined });
             toast.success("Опубликовано");
-            setTitle(""); setBody("");
+            setTitle(""); setBody(""); setImage("");
           }}>Опубликовать</Button>
         </CardContent>
       </Card>
@@ -333,28 +346,44 @@ function NewsPanel() {
   );
 }
 
-function NewsItem({ a, onSave, onDelete }: { a: Announcement; onSave: (p: { title: string; body: string }) => void; onDelete: () => void }) {
+function NewsItem({ a, onSave, onDelete }: { a: Announcement; onSave: (p: { title: string; body: string; image?: string }) => void; onDelete: () => void }) {
   const [edit, setEdit] = useState(false);
   const [t, setT] = useState(a.title);
   const [b, setB] = useState(a.body);
+  const [img, setImg] = useState(a.image ?? "");
+  const fileRef = useRef<HTMLInputElement>(null);
+  const onFile = (f: File) => {
+    if (f.size > 4 * 1024 * 1024) return toast.error("Файл больше 4МБ");
+    const r = new FileReader(); r.onload = () => setImg(String(r.result)); r.readAsDataURL(f);
+  };
   if (edit) {
     return (
       <li className="border rounded-lg p-3 space-y-2">
         <Input value={t} onChange={(e) => setT(e.target.value)} />
         <Textarea rows={3} value={b} onChange={(e) => setB(e.target.value)} />
+        <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
+        {img ? (
+          <div className="relative">
+            <img src={img} alt="" className="rounded-lg max-h-40 w-full object-cover" />
+            <Button size="icon" variant="ghost" className="absolute top-1 right-1 bg-background/80" onClick={() => setImg("")}><X className="h-4 w-4" /></Button>
+          </div>
+        ) : (
+          <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()}><ImagePlus className="h-4 w-4 mr-2" />Добавить фото</Button>
+        )}
         <div className="flex gap-2">
-          <Button size="sm" onClick={() => { onSave({ title: t, body: b }); setEdit(false); }}>Сохранить</Button>
-          <Button size="sm" variant="ghost" onClick={() => { setT(a.title); setB(a.body); setEdit(false); }}>Отмена</Button>
+          <Button size="sm" onClick={() => { onSave({ title: t, body: b, image: img || undefined }); setEdit(false); }}>Сохранить</Button>
+          <Button size="sm" variant="ghost" onClick={() => { setT(a.title); setB(a.body); setImg(a.image ?? ""); setEdit(false); }}>Отмена</Button>
         </div>
       </li>
     );
   }
   return (
     <li className="border-l-2 border-brand pl-4 flex items-start justify-between gap-3">
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="text-sm font-semibold">{a.title}</div>
         <div className="text-xs text-muted-foreground mb-1">{new Date(a.date).toLocaleDateString("ru-RU")} · {a.comments.length} комм.</div>
-        <div className="text-sm text-foreground/80">{a.body}</div>
+        {a.image && <img src={a.image} alt="" className="my-1 rounded max-h-32 object-cover" />}
+        <div className="text-sm text-foreground/80 whitespace-pre-wrap">{a.body}</div>
       </div>
       <div className="flex gap-1 shrink-0">
         <Button size="sm" variant="ghost" onClick={() => setEdit(true)}><Pencil className="h-4 w-4" /></Button>
@@ -748,3 +777,143 @@ function LinkForm({ value, onChange }: { value: { title: string; url: string; de
   );
 }
 
+
+/* ---------- Departments ---------- */
+function DepartmentsPanel() {
+  const { departments, users, addDepartment, renameDepartment, deleteDepartment } = useApp();
+  const [n, setN] = useState("");
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2"><Building2 className="h-5 w-5 text-brand" /> Отделы ({departments.length})</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex gap-2">
+          <Input value={n} onChange={(e) => setN(e.target.value)} placeholder="Название нового отдела" />
+          <Button onClick={() => { if (!n.trim()) return; addDepartment(n); setN(""); toast.success("Отдел добавлен"); }}><Plus className="h-4 w-4 mr-1" />Добавить</Button>
+        </div>
+        <ul className="space-y-2">
+          {departments.map((d) => {
+            const count = users.filter((u) => u.department === d).length;
+            return <DeptRow key={d} name={d} count={count} onRename={(nn) => { renameDepartment(d, nn); toast.success("Отдел переименован"); }} onDelete={() => { if (count > 0) return toast.error(`Сначала переведите ${count} сотр.`); deleteDepartment(d); toast.success("Удалено"); }} />;
+          })}
+        </ul>
+      </CardContent>
+    </Card>
+  );
+}
+
+function DeptRow({ name, count, onRename, onDelete }: { name: string; count: number; onRename: (n: string) => void; onDelete: () => void }) {
+  const [edit, setEdit] = useState(false);
+  const [v, setV] = useState(name);
+  return (
+    <li className="flex items-center gap-3 border rounded-lg p-3">
+      {edit ? (
+        <>
+          <Input value={v} onChange={(e) => setV(e.target.value)} className="flex-1" />
+          <Button size="sm" onClick={() => { if (v.trim()) { onRename(v.trim()); setEdit(false); } }}>OK</Button>
+          <Button size="sm" variant="ghost" onClick={() => { setV(name); setEdit(false); }}>Отмена</Button>
+        </>
+      ) : (
+        <>
+          <div className="flex-1 font-medium">{name}</div>
+          <Badge variant="secondary">{count} сотр.</Badge>
+          <Button size="sm" variant="ghost" onClick={() => setEdit(true)}><Pencil className="h-4 w-4" /></Button>
+          <Button size="sm" variant="ghost" className="text-rose-600" onClick={onDelete}><Trash2 className="h-4 w-4" /></Button>
+        </>
+      )}
+    </li>
+  );
+}
+
+/* ---------- Birthdays edit ---------- */
+function BirthdaysPanel() {
+  const { users, updateUser } = useApp();
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2"><Cake className="h-5 w-5 text-coin" /> Дни рождения сотрудников</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ul className="space-y-2">
+          {users.map((u) => (
+            <li key={u.id} className="flex items-center gap-3 border rounded-lg p-3">
+              <img src={u.avatar} className="h-9 w-9 rounded-full object-cover" alt="" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium truncate">{u.name}</div>
+                <div className="text-xs text-muted-foreground truncate">{u.position}</div>
+              </div>
+              <Input
+                type="date"
+                className="w-44"
+                value={u.birthday ?? ""}
+                onChange={(e) => { updateUser(u.id, { birthday: e.target.value || undefined }); }}
+              />
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ---------- Bonus Rules ---------- */
+function BonusRulesPanel() {
+  const { bonusRules, addBonusRule, updateBonusRule, deleteBonusRule } = useApp();
+  const empty = { title: "", amount: 100, description: "" };
+  const [n, setN] = useState(empty);
+  const [open, setOpen] = useState(false);
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-coin" /> Как заработать бонусы ({bonusRules.length})</CardTitle>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild><Button size="sm"><Plus className="h-4 w-4 mr-1" />Добавить</Button></DialogTrigger>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Новое правило</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <Field label="Название"><Input value={n.title} onChange={(e) => setN({ ...n, title: e.target.value })} /></Field>
+              <Field label="Сумма бонусов"><Input type="number" value={n.amount} onChange={(e) => setN({ ...n, amount: +e.target.value })} /></Field>
+              <Field label="Описание"><Textarea rows={3} value={n.description} onChange={(e) => setN({ ...n, description: e.target.value })} /></Field>
+              <Button className="w-full" onClick={() => { if (!n.title.trim()) return toast.error("Название обязательно"); addBonusRule(n); setN(empty); setOpen(false); toast.success("Добавлено"); }}>Создать</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </CardHeader>
+      <CardContent>
+        <ul className="space-y-2">
+          {bonusRules.map((b) => (
+            <BonusRuleRow key={b.id} rule={b} onSave={(p) => { updateBonusRule(b.id, p); toast.success("Сохранено"); }} onDelete={() => { if (confirm(`Удалить «${b.title}»?`)) { deleteBonusRule(b.id); toast.success("Удалено"); } }} />
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
+  );
+}
+
+function BonusRuleRow({ rule, onSave, onDelete }: { rule: BonusRule; onSave: (p: Partial<BonusRule>) => void; onDelete: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [d, setD] = useState({ title: rule.title, amount: rule.amount, description: rule.description });
+  return (
+    <li className="flex items-start gap-3 border rounded-lg p-3">
+      <div className="flex items-center gap-1 text-coin font-bold shrink-0"><Coins className="h-4 w-4" />+{rule.amount}</div>
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-semibold">{rule.title}</div>
+        <div className="text-xs text-muted-foreground">{rule.description}</div>
+      </div>
+      <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setD({ title: rule.title, amount: rule.amount, description: rule.description }); }}>
+        <DialogTrigger asChild><Button size="sm" variant="ghost"><Pencil className="h-4 w-4" /></Button></DialogTrigger>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Редактировать правило</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <Field label="Название"><Input value={d.title} onChange={(e) => setD({ ...d, title: e.target.value })} /></Field>
+            <Field label="Сумма"><Input type="number" value={d.amount} onChange={(e) => setD({ ...d, amount: +e.target.value })} /></Field>
+            <Field label="Описание"><Textarea rows={3} value={d.description} onChange={(e) => setD({ ...d, description: e.target.value })} /></Field>
+            <Button className="w-full" onClick={() => { onSave(d); setOpen(false); }}>Сохранить</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Button size="sm" variant="ghost" className="text-rose-600" onClick={onDelete}><Trash2 className="h-4 w-4" /></Button>
+    </li>
+  );
+}

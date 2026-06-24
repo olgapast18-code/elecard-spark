@@ -27,7 +27,7 @@ function TeamPage() {
       </header>
 
       <Card>
-        <CardHeader><CardTitle>Иерархия подчинения</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Наша компания</CardTitle></CardHeader>
         <CardContent>
           <OrgChart onSelect={setSelected} />
         </CardContent>

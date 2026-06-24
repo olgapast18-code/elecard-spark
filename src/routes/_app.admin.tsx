@@ -286,6 +286,15 @@ function NewsPanel() {
   const { announcements, addAnnouncement, updateAnnouncement, deleteAnnouncement } = useApp();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [image, setImage] = useState<string>("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const onFile = (f: File) => {
+    if (f.size > 4 * 1024 * 1024) return toast.error("Файл больше 4МБ");
+    const r = new FileReader();
+    r.onload = () => setImage(String(r.result));
+    r.readAsDataURL(f);
+  };
 
   return (
     <div className="grid lg:grid-cols-[1fr_360px] gap-6">
@@ -305,12 +314,24 @@ function NewsPanel() {
         <CardHeader><CardTitle className="flex items-center gap-2"><Plus className="h-5 w-5 text-brand" /> Новая публикация</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <Field label="Заголовок"><Input value={title} onChange={(e) => setTitle(e.target.value)} /></Field>
-          <Field label="Текст"><Textarea rows={5} value={body} onChange={(e) => setBody(e.target.value)} /></Field>
+          <Field label="Текст"><Textarea rows={5} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Поддерживаются эмодзи 🎉✨" /></Field>
+          <div>
+            <Label className="text-xs">Картинка (необязательно)</Label>
+            <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
+            {image ? (
+              <div className="relative mt-2">
+                <img src={image} alt="" className="rounded-lg max-h-40 w-full object-cover" />
+                <Button size="icon" variant="ghost" className="absolute top-1 right-1 bg-background/80" onClick={() => setImage("")}><X className="h-4 w-4" /></Button>
+              </div>
+            ) : (
+              <Button variant="outline" size="sm" className="mt-1" onClick={() => fileRef.current?.click()}><ImagePlus className="h-4 w-4 mr-2" />Загрузить фото</Button>
+            )}
+          </div>
           <Button className="w-full" onClick={() => {
             if (!title.trim() || !body.trim()) return toast.error("Заполните заголовок и текст");
-            addAnnouncement({ title: title.trim(), body: body.trim() });
+            addAnnouncement({ title: title.trim(), body: body.trim(), image: image || undefined });
             toast.success("Опубликовано");
-            setTitle(""); setBody("");
+            setTitle(""); setBody(""); setImage("");
           }}>Опубликовать</Button>
         </CardContent>
       </Card>
@@ -318,28 +339,44 @@ function NewsPanel() {
   );
 }
 
-function NewsItem({ a, onSave, onDelete }: { a: Announcement; onSave: (p: { title: string; body: string }) => void; onDelete: () => void }) {
+function NewsItem({ a, onSave, onDelete }: { a: Announcement; onSave: (p: { title: string; body: string; image?: string }) => void; onDelete: () => void }) {
   const [edit, setEdit] = useState(false);
   const [t, setT] = useState(a.title);
   const [b, setB] = useState(a.body);
+  const [img, setImg] = useState(a.image ?? "");
+  const fileRef = useRef<HTMLInputElement>(null);
+  const onFile = (f: File) => {
+    if (f.size > 4 * 1024 * 1024) return toast.error("Файл больше 4МБ");
+    const r = new FileReader(); r.onload = () => setImg(String(r.result)); r.readAsDataURL(f);
+  };
   if (edit) {
     return (
       <li className="border rounded-lg p-3 space-y-2">
         <Input value={t} onChange={(e) => setT(e.target.value)} />
         <Textarea rows={3} value={b} onChange={(e) => setB(e.target.value)} />
+        <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
+        {img ? (
+          <div className="relative">
+            <img src={img} alt="" className="rounded-lg max-h-40 w-full object-cover" />
+            <Button size="icon" variant="ghost" className="absolute top-1 right-1 bg-background/80" onClick={() => setImg("")}><X className="h-4 w-4" /></Button>
+          </div>
+        ) : (
+          <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()}><ImagePlus className="h-4 w-4 mr-2" />Добавить фото</Button>
+        )}
         <div className="flex gap-2">
-          <Button size="sm" onClick={() => { onSave({ title: t, body: b }); setEdit(false); }}>Сохранить</Button>
-          <Button size="sm" variant="ghost" onClick={() => { setT(a.title); setB(a.body); setEdit(false); }}>Отмена</Button>
+          <Button size="sm" onClick={() => { onSave({ title: t, body: b, image: img || undefined }); setEdit(false); }}>Сохранить</Button>
+          <Button size="sm" variant="ghost" onClick={() => { setT(a.title); setB(a.body); setImg(a.image ?? ""); setEdit(false); }}>Отмена</Button>
         </div>
       </li>
     );
   }
   return (
     <li className="border-l-2 border-brand pl-4 flex items-start justify-between gap-3">
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="text-sm font-semibold">{a.title}</div>
         <div className="text-xs text-muted-foreground mb-1">{new Date(a.date).toLocaleDateString("ru-RU")} · {a.comments.length} комм.</div>
-        <div className="text-sm text-foreground/80">{a.body}</div>
+        {a.image && <img src={a.image} alt="" className="my-1 rounded max-h-32 object-cover" />}
+        <div className="text-sm text-foreground/80 whitespace-pre-wrap">{a.body}</div>
       </div>
       <div className="flex gap-1 shrink-0">
         <Button size="sm" variant="ghost" onClick={() => setEdit(true)}><Pencil className="h-4 w-4" /></Button>

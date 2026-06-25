@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { ShieldCheck, Coins, UserPlus, Pencil, PackagePlus, Sparkles, Trash2, Network, Megaphone, Plus, Camera, Target, Link2, ExternalLink, Cake, Building2, ImagePlus, X } from "lucide-react";
+import { ShieldCheck, Coins, UserPlus, Pencil, PackagePlus, Sparkles, Trash2, Network, Megaphone, Plus, Camera, Target, Link2, ExternalLink, Cake, Building2, ImagePlus, X, ClipboardList, Download, Upload, RefreshCw, Database } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/admin")({
@@ -48,6 +48,8 @@ function AdminPage() {
           <TabsTrigger value="shop">Магазин</TabsTrigger>
           <TabsTrigger value="jobs">Должности</TabsTrigger>
           <TabsTrigger value="links">Ссылки</TabsTrigger>
+          <TabsTrigger value="polls">Опросы</TabsTrigger>
+          <TabsTrigger value="data">Данные</TabsTrigger>
         </TabsList>
 
         <TabsContent value="employees" className="space-y-4 pt-4"><EmployeesPanel /></TabsContent>
@@ -67,6 +69,8 @@ function AdminPage() {
         <TabsContent value="shop" className="pt-4"><ShopAdmin /></TabsContent>
         <TabsContent value="jobs" className="pt-4"><JobsAdmin /></TabsContent>
         <TabsContent value="links" className="pt-4"><LinksAdmin /></TabsContent>
+        <TabsContent value="polls" className="pt-4"><PollsAdmin /></TabsContent>
+        <TabsContent value="data" className="pt-4"><DataPanel /></TabsContent>
       </Tabs>
     </div>
   );

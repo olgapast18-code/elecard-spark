@@ -1,11 +1,12 @@
 import { createFileRoute, Outlet, useNavigate, Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useApp } from "@/context/AppContext";
-import { LayoutDashboard, Store, BriefcaseBusiness, Users, LogOut, Rocket, Coins, ShieldCheck, UserCircle, Link2, Menu, Home, Cake, MessageSquare, Sparkles, ShoppingCart } from "lucide-react";
+import { LayoutDashboard, Store, BriefcaseBusiness, Users, LogOut, Rocket, Coins, ShieldCheck, UserCircle, Link2, Menu, Home, Cake, MessageSquare, Sparkles, ShoppingCart, ClipboardList, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { SearchDialog } from "@/components/SearchDialog";
 
 export const Route = createFileRoute("/_app")({
   component: AppLayout,
@@ -16,6 +17,18 @@ function AppLayout() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   useEffect(() => {
     if (!currentUser) navigate({ to: "/auth" });
@@ -35,6 +48,7 @@ function AppLayout() {
     { to: "/cart", label: "Корзина", icon: ShoppingCart, badge: cart.length },
     { to: "/bonuses", label: "Как заработать бонусы", icon: Sparkles, badge: 0 },
     { to: "/jobs", label: "Карта должностей", icon: BriefcaseBusiness, badge: 0 },
+    { to: "/polls", label: "Опросы", icon: ClipboardList, badge: 0 },
     { to: "/links", label: "Полезные ссылки", icon: Link2, badge: 0 },
     { to: "/profile", label: "Моя карточка", icon: UserCircle, badge: 0 },
     ...(isAdmin ? [{ to: "/admin", label: "Админ-панель", icon: ShieldCheck, badge: 0 }] : []),

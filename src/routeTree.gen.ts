@@ -25,7 +25,6 @@ import { Route as AppCartRouteImport } from './routes/_app.cart'
 import { Route as AppBonusesRouteImport } from './routes/_app.bonuses'
 import { Route as AppBirthdaysRouteImport } from './routes/_app.birthdays'
 import { Route as AppAdminRouteImport } from './routes/_app.admin'
-import { Route as AppPollsRouteImport } from './routes/_app.polls'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -106,11 +105,6 @@ const AppAdminRoute = AppAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AppRoute,
 } as any)
-const AppPollsRoute = AppPollsRouteImport.update({
-  id: '/polls',
-  path: '/polls',
-  getParentRoute: () => AppRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -128,7 +122,6 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AppProfileRoute
   '/shop': typeof AppShopRoute
   '/team': typeof AppTeamRoute
-  '/polls': typeof AppPollsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -146,7 +139,6 @@ export interface FileRoutesByTo {
   '/profile': typeof AppProfileRoute
   '/shop': typeof AppShopRoute
   '/team': typeof AppTeamRoute
-  '/polls': typeof AppPollsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -166,7 +158,6 @@ export interface FileRoutesById {
   '/_app/profile': typeof AppProfileRoute
   '/_app/shop': typeof AppShopRoute
   '/_app/team': typeof AppTeamRoute
-  '/_app/polls': typeof AppPollsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -186,8 +177,6 @@ export interface FileRouteTypes {
     | '/profile'
     | '/shop'
     | '/team'
-    | '/polls'
-    | '/polls'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -223,7 +212,6 @@ export interface FileRouteTypes {
     | '/_app/profile'
     | '/_app/shop'
     | '/_app/team'
-    | '/_app/polls'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -345,15 +333,8 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin'
       preLoaderRoute: typeof AppAdminRouteImport
       parentRoute: typeof AppRoute
-    '/_app/polls': {
-      id: '/_app/polls'
-      path: '/polls'
-      fullPath: '/polls'
-      preLoaderRoute: typeof AppPollsRouteImport
-      parentRoute: typeof AppRoute
     }
   }
-}
 }
 
 interface AppRouteChildren {
@@ -370,7 +351,6 @@ interface AppRouteChildren {
   AppProfileRoute: typeof AppProfileRoute
   AppShopRoute: typeof AppShopRoute
   AppTeamRoute: typeof AppTeamRoute
-  AppPollsRoute: typeof AppPollsRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -387,7 +367,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppProfileRoute: AppProfileRoute,
   AppShopRoute: AppShopRoute,
   AppTeamRoute: AppTeamRoute,
-  AppPollsRoute: AppPollsRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

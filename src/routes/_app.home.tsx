@@ -84,6 +84,7 @@ function HomePage() {
           </CardContent>
         </Card>
       </div>
+      <NewsDialog announcement={openNews} open={!!openNews} onOpenChange={(o) => !o && setOpenNews(null)} />
     </div>
   );
 }

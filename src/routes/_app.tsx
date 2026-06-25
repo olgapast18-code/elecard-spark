@@ -151,15 +151,22 @@ function AppLayout() {
           </div>
           <span className="font-bold text-sm">ElecardSpace</span>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full bg-sidebar-primary/20 px-2.5 py-1 text-xs">
-          <Coins className="h-3.5 w-3.5 text-coin" />
-          <span className="font-semibold">{currentUser.balance}</span>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent" onClick={() => setSearchOpen(true)}>
+            <Search className="h-5 w-5" />
+          </Button>
+          <div className="flex items-center gap-1.5 rounded-full bg-sidebar-primary/20 px-2.5 py-1 text-xs">
+            <Coins className="h-3.5 w-3.5 text-coin" />
+            <span className="font-semibold">{currentUser.balance}</span>
+          </div>
         </div>
       </div>
 
       <main className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
         <Outlet />
       </main>
+
+      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
     </div>
   );
 }

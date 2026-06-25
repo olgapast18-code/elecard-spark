@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useApp } from "@/context/AppContext";
+import { useState } from "react";
+import { useApp, type Announcement } from "@/context/AppContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Cake, Home, Megaphone, ArrowRight } from "lucide-react";
+import { Cake, Home, Megaphone, ArrowRight, MessageSquare } from "lucide-react";
+import { NewsDialog } from "@/components/NewsDialog";
 
 export const Route = createFileRoute("/_app/home")({ component: HomePage });
 
@@ -17,6 +19,7 @@ function daysUntilBirthday(b?: string) {
 
 function HomePage() {
   const { announcements, users, currentUser } = useApp();
+  const [openNews, setOpenNews] = useState<Announcement | null>(null);
   if (!currentUser) return null;
 
   const upcoming = [...users]
@@ -38,13 +41,20 @@ function HomePage() {
             <CardTitle className="flex items-center gap-2"><Megaphone className="h-5 w-5 text-brand" /> Новости компании</CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-5">
+            <ul className="space-y-3">
               {announcements.slice(0, 4).map((a) => (
-                <li key={a.id} className="border-l-2 border-brand pl-4">
-                  <div className="text-sm font-semibold">{a.title}</div>
-                  <div className="text-xs text-muted-foreground mb-1">{new Date(a.date).toLocaleDateString("ru-RU")}</div>
-                  {a.image && <img src={a.image} alt="" className="my-2 rounded-lg max-h-56 w-full object-cover" />}
-                  <div className="text-sm text-foreground/80 whitespace-pre-wrap">{a.body}</div>
+                <li key={a.id}>
+                  <button onClick={() => setOpenNews(a)} className="w-full text-left border-l-2 border-brand pl-4 py-1 hover:bg-muted/40 rounded-r-lg transition flex gap-3">
+                    {a.image && <img src={a.image} alt="" className="h-12 w-12 rounded-lg object-cover aspect-square shrink-0" />}
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-semibold">{a.title}</div>
+                      <div className="text-xs text-muted-foreground mb-1">{new Date(a.date).toLocaleDateString("ru-RU")}</div>
+                      <div className="text-sm text-foreground/80 line-clamp-2">{a.body}</div>
+                      <div className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
+                        <MessageSquare className="h-3 w-3" /> {a.comments.length} комм.
+                      </div>
+                    </div>
+                  </button>
                 </li>
               ))}
             </ul>

@@ -1,24 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useApp, type User } from "@/context/AppContext";
+import { useApp, type User, type Announcement } from "@/context/AppContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Coins, Mail, Send, Calendar, TrendingUp, TrendingDown, Megaphone, Users as UsersIcon, Target, Network, MessageSquare } from "lucide-react";
 import { EmployeeCard } from "@/components/EmployeeCard";
 import { OrgChart } from "@/components/OrgChart";
-import { EmojiPicker } from "@/components/EmojiPicker";
+import { NewsDialog } from "@/components/NewsDialog";
 
 export const Route = createFileRoute("/_app/dashboard")({
   component: Dashboard,
 });
 
 function Dashboard() {
-  const { currentUser, users, announcements, addComment } = useApp();
+  const { currentUser, users, announcements } = useApp();
   const [selected, setSelected] = useState<User | null>(null);
-  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [openNews, setOpenNews] = useState<Announcement | null>(null);
 
   if (!currentUser) return null;
 
@@ -156,56 +154,24 @@ function Dashboard() {
           <CardTitle className="flex items-center gap-2"><Megaphone className="h-5 w-5 text-brand" /> Объявления компании</CardTitle>
         </CardHeader>
         <CardContent>
-          <ul className="space-y-6">
+          <p className="text-xs text-muted-foreground mb-3">Нажмите на новость, чтобы открыть обсуждение</p>
+          <ul className="space-y-3">
             {announcements.map((a) => (
-              <li key={a.id} className="border-l-2 border-brand pl-4">
-                <div className="text-sm font-semibold">{a.title}</div>
-                <div className="text-xs text-muted-foreground mb-1">{new Date(a.date).toLocaleDateString("ru-RU")}</div>
-                {a.image && <img src={a.image} alt="" className="my-2 rounded-lg max-h-72 w-full object-cover" />}
-                <div className="text-sm text-foreground/80 whitespace-pre-wrap">{a.body}</div>
-
-                <div className="mt-3 space-y-2">
-                  {a.comments.length > 0 && (
-                    <ul className="space-y-2">
-                      {a.comments.map((c) => (
-                        <li key={c.id} className="flex gap-2 text-sm bg-muted/40 rounded-lg p-2">
-                          <img src={c.authorAvatar} className="h-7 w-7 rounded-full shrink-0" alt="" />
-                          <div className="min-w-0">
-                            <div className="text-xs">
-                              <span className="font-medium">{c.authorName}</span>
-                              <span className="text-muted-foreground"> · {new Date(c.date).toLocaleString("ru-RU")}</span>
-                            </div>
-                            <div className="text-sm whitespace-pre-wrap">{c.body}</div>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  <div className="flex gap-2 items-start">
-                    <img src={currentUser.avatar} className="h-7 w-7 rounded-full shrink-0 mt-1" alt="" />
-                    <Textarea
-                      value={draft[a.id] ?? ""}
-                      onChange={(e) => setDraft({ ...draft, [a.id]: e.target.value })}
-                      placeholder="Оставьте комментарий..."
-                      rows={2}
-                      className="text-sm"
-                    />
-                    <div className="flex flex-col gap-1">
-                      <EmojiPicker onPick={(e) => setDraft({ ...draft, [a.id]: (draft[a.id] ?? "") + e })} />
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          const body = (draft[a.id] ?? "").trim();
-                          if (!body) return;
-                          addComment(a.id, body);
-                          setDraft({ ...draft, [a.id]: "" });
-                        }}
-                      >
-                        <MessageSquare className="h-4 w-4" />
-                      </Button>
+              <li key={a.id}>
+                <button
+                  onClick={() => setOpenNews(a)}
+                  className="w-full text-left border rounded-lg p-3 hover:border-brand hover:shadow-sm transition flex gap-3 items-start"
+                >
+                  {a.image && <img src={a.image} alt="" className="h-14 w-14 rounded-lg object-cover aspect-square shrink-0" />}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold truncate">{a.title}</div>
+                    <div className="text-xs text-muted-foreground mb-1">{new Date(a.date).toLocaleDateString("ru-RU")}</div>
+                    <div className="text-sm text-foreground/80 line-clamp-2">{a.body}</div>
+                    <div className="mt-1.5 text-xs text-muted-foreground flex items-center gap-1">
+                      <MessageSquare className="h-3 w-3" /> {a.comments.length} комм.
                     </div>
                   </div>
-                </div>
+                </button>
               </li>
             ))}
           </ul>
@@ -213,6 +179,7 @@ function Dashboard() {
       </Card>
 
       <EmployeeCard user={selected} open={!!selected} onOpenChange={(o) => !o && setSelected(null)} />
+      <NewsDialog announcement={openNews} open={!!openNews} onOpenChange={(o) => !o && setOpenNews(null)} />
     </div>
   );
 }

@@ -66,6 +66,18 @@ function AppLayout() {
         </div>
       </div>
 
+      <div className="px-3 pt-3">
+        <button
+          onClick={() => setSearchOpen(true)}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-sidebar-accent/50 hover:bg-sidebar-accent text-sm text-sidebar-foreground/70 transition-colors"
+        >
+          <Search className="h-4 w-4" />
+          <span className="flex-1 text-left">Поиск…</span>
+          <kbd className="text-[10px] opacity-60 hidden md:inline">⌘K</kbd>
+        </button>
+      </div>
+
+
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {items.map((it) => {
           const active = pathname === it.to || pathname.startsWith(it.to + "/");

@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { ShieldCheck, Coins, UserPlus, Pencil, PackagePlus, Sparkles, Trash2, Network, Megaphone, Plus, Camera, Target, Link2, ExternalLink, Cake, Building2, ImagePlus, X } from "lucide-react";
+import { ShieldCheck, Coins, UserPlus, Pencil, PackagePlus, Sparkles, Trash2, Network, Megaphone, Plus, Camera, Target, Link2, ExternalLink, Cake, Building2, ImagePlus, X, ClipboardList, Download, Upload, RefreshCw, Database } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/admin")({
@@ -48,6 +48,8 @@ function AdminPage() {
           <TabsTrigger value="shop">Магазин</TabsTrigger>
           <TabsTrigger value="jobs">Должности</TabsTrigger>
           <TabsTrigger value="links">Ссылки</TabsTrigger>
+          <TabsTrigger value="polls">Опросы</TabsTrigger>
+          <TabsTrigger value="data">Данные</TabsTrigger>
         </TabsList>
 
         <TabsContent value="employees" className="space-y-4 pt-4"><EmployeesPanel /></TabsContent>
@@ -67,6 +69,8 @@ function AdminPage() {
         <TabsContent value="shop" className="pt-4"><ShopAdmin /></TabsContent>
         <TabsContent value="jobs" className="pt-4"><JobsAdmin /></TabsContent>
         <TabsContent value="links" className="pt-4"><LinksAdmin /></TabsContent>
+        <TabsContent value="polls" className="pt-4"><PollsAdmin /></TabsContent>
+        <TabsContent value="data" className="pt-4"><DataPanel /></TabsContent>
       </Tabs>
     </div>
   );
@@ -915,5 +919,166 @@ function BonusRuleRow({ rule, onSave, onDelete }: { rule: BonusRule; onSave: (p:
       </Dialog>
       <Button size="sm" variant="ghost" className="text-rose-600" onClick={onDelete}><Trash2 className="h-4 w-4" /></Button>
     </li>
+  );
+}
+
+/* ---------- Polls ---------- */
+function PollsAdmin() {
+  const { polls, addPoll, updatePoll, deletePoll, users } = useApp();
+  const [question, setQuestion] = useState("");
+  const [description, setDescription] = useState("");
+  const [opts, setOpts] = useState<string[]>(["", ""]);
+
+  const submit = () => {
+    if (!question.trim()) return toast.error("Введите вопрос");
+    const cleaned = opts.map((o) => o.trim()).filter(Boolean);
+    if (cleaned.length < 2) return toast.error("Минимум 2 варианта ответа");
+    addPoll({ question: question.trim(), description: description.trim() || undefined, options: cleaned });
+    setQuestion(""); setDescription(""); setOpts(["", ""]);
+    toast.success("Опрос создан");
+  };
+
+  return (
+    <div className="grid lg:grid-cols-[1fr_360px] gap-6">
+      <Card>
+        <CardHeader><CardTitle className="flex items-center gap-2"><ClipboardList className="h-5 w-5 text-brand" /> Опросы и результаты</CardTitle></CardHeader>
+        <CardContent>
+          {polls.length === 0 && <p className="text-sm text-muted-foreground">Опросов пока нет</p>}
+          <ul className="space-y-4">
+            {polls.map((p) => {
+              const total = p.options.reduce((s, o) => s + o.votes.length, 0);
+              return (
+                <li key={p.id} className="border rounded-lg p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold">{p.question}</div>
+                      {p.description && <div className="text-xs text-muted-foreground">{p.description}</div>}
+                      <div className="text-xs text-muted-foreground mt-1">Создан: {p.createdAt} · Всего голосов: {total}</div>
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      <Button size="sm" variant="outline" onClick={() => { updatePoll(p.id, { closed: !p.closed }); toast.success(p.closed ? "Опрос открыт" : "Опрос закрыт"); }}>
+                        {p.closed ? "Открыть" : "Закрыть"}
+                      </Button>
+                      <Button size="sm" variant="ghost" className="text-rose-600" onClick={() => { if (confirm("Удалить опрос?")) { deletePoll(p.id); toast.success("Удалено"); } }}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <ul className="mt-3 space-y-2">
+                    {p.options.map((o) => {
+                      const pct = total ? Math.round((o.votes.length / total) * 100) : 0;
+                      const voters = o.votes.map((v) => users.find((u) => u.id === v)?.name).filter(Boolean).join(", ");
+                      return (
+                        <li key={o.id} className="text-sm">
+                          <div className="flex justify-between mb-1"><span>{o.text}</span><span className="text-muted-foreground">{o.votes.length} · {pct}%</span></div>
+                          <Progress value={pct} className="h-1.5" />
+                          {voters && <div className="text-[11px] text-muted-foreground mt-1">Проголосовали: {voters}</div>}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </li>
+              );
+            })}
+          </ul>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="flex items-center gap-2"><Plus className="h-5 w-5 text-brand" /> Новый опрос</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <Field label="Вопрос"><Input value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Например, куда поедем на тимбилдинг?" /></Field>
+          <Field label="Описание (необязательно)"><Textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} /></Field>
+          <div>
+            <Label className="text-sm mb-1.5 block">Варианты ответа</Label>
+            <div className="space-y-2">
+              {opts.map((o, i) => (
+                <div key={i} className="flex gap-2">
+                  <Input value={o} onChange={(e) => setOpts(opts.map((x, j) => (j === i ? e.target.value : x)))} placeholder={`Вариант ${i + 1}`} />
+                  {opts.length > 2 && (
+                    <Button size="icon" variant="ghost" onClick={() => setOpts(opts.filter((_, j) => j !== i))}><X className="h-4 w-4" /></Button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <Button size="sm" variant="outline" className="mt-2" onClick={() => setOpts([...opts, ""])}>
+              <Plus className="h-4 w-4 mr-1" /> Добавить вариант
+            </Button>
+          </div>
+          <Button className="w-full" onClick={submit}>Создать опрос</Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+/* ---------- Data export/import ---------- */
+function DataPanel() {
+  const { exportData, importData, resetData } = useApp();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [text, setText] = useState("");
+
+  const download = () => {
+    const json = exportData();
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `elecard-space-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Резервная копия скачана");
+  };
+
+  const onFile = (f: File) => {
+    const r = new FileReader();
+    r.onload = () => {
+      const res = importData(String(r.result));
+      if (res.ok) toast.success(res.message); else toast.error(res.message);
+    };
+    r.readAsText(f);
+  };
+
+  const applyText = () => {
+    const res = importData(text);
+    if (res.ok) { toast.success(res.message); setText(""); } else toast.error(res.message);
+  };
+
+  return (
+    <div className="grid lg:grid-cols-2 gap-6">
+      <Card>
+        <CardHeader><CardTitle className="flex items-center gap-2"><Database className="h-5 w-5 text-brand" /> Резервная копия и интеграции</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Все изменения автоматически сохраняются в локальное хранилище браузера. Для переноса данных
+            во внешнюю базу скачайте JSON-файл и загрузите его в свою систему через стандартный API/импорт.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={download}><Download className="h-4 w-4 mr-2" /> Скачать JSON</Button>
+            <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
+            <Button variant="outline" onClick={() => fileRef.current?.click()}><Upload className="h-4 w-4 mr-2" /> Загрузить JSON</Button>
+            <Button variant="ghost" className="text-rose-600" onClick={() => { if (confirm("Сбросить все данные к демо-значениям?")) resetData(); }}>
+              <RefreshCw className="h-4 w-4 mr-2" /> Сброс
+            </Button>
+          </div>
+          <div className="rounded-lg bg-muted/40 p-3 text-xs space-y-1">
+            <div className="font-semibold">Что попадает в выгрузку:</div>
+            <ul className="list-disc pl-4 space-y-0.5 text-muted-foreground">
+              <li>Сотрудники, отделы, должности, структура подчинения</li>
+              <li>Новости и комментарии, полезные ссылки, правила бонусов</li>
+              <li>Транзакции, опросы и сообщения мессенджера</li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Импорт JSON напрямую</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <Textarea rows={12} value={text} onChange={(e) => setText(e.target.value)} placeholder='{"users": [...], "products": [...]}' className="font-mono text-xs" />
+          <Button className="w-full" onClick={applyText} disabled={!text.trim()}>Применить</Button>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

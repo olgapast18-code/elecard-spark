@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useMemo, type ReactNode } from "react";
+import { createContext, useContext, useState, useMemo, useEffect, useRef, type ReactNode } from "react";
 
 export type Role = "admin" | "employee";
 
@@ -99,6 +99,16 @@ export type Message = {
 };
 
 export type CartItem = { productId: string; qty: number };
+
+export type PollOption = { id: string; text: string; votes: string[] };
+export type Poll = {
+  id: string;
+  question: string;
+  description?: string;
+  options: PollOption[];
+  createdAt: string;
+  closed?: boolean;
+};
 
 const DEFAULT_DEPARTMENTS = [
   "Руководство",
@@ -299,6 +309,68 @@ const seedBonusRules: BonusRule[] = [
   { id: "b6", title: "Участие в мероприятии", amount: 80, description: "Доклад, организация митапа или внешнее представление компании." },
 ];
 
+const seedPolls: Poll[] = [
+  {
+    id: "poll1",
+    question: "Куда поедем на летний тимбилдинг?",
+    description: "Голосование открыто до 25 июня. Выбери один вариант.",
+    createdAt: "2026-06-10",
+    options: [
+      { id: "o1", text: "Загородная база отдыха", votes: ["u-dev", "u-design"] },
+      { id: "o2", text: "Сплав по реке", votes: ["u-analytics"] },
+      { id: "o3", text: "Поездка в горы", votes: ["u-dev2"] },
+    ],
+  },
+  {
+    id: "poll2",
+    question: "Какие курсы добавить в магазин бонусов?",
+    createdAt: "2026-06-05",
+    options: [
+      { id: "o1", text: "Курс по System Design", votes: ["u-dev"] },
+      { id: "o2", text: "Курс по продуктовой аналитике", votes: [] },
+      { id: "o3", text: "Курс по soft skills", votes: ["u-designjr"] },
+    ],
+  },
+];
+
+const STORAGE_KEY = "elecard_space_state_v1";
+
+type PersistedState = {
+  users: User[];
+  products: Product[];
+  jobs: Job[];
+  announcements: Announcement[];
+  links: UsefulLink[];
+  bonusRules: BonusRule[];
+  departments: string[];
+  messages: Message[];
+  polls: Poll[];
+};
+
+const seedAll = (): PersistedState => ({
+  users: seedUsers,
+  products: seedProducts,
+  jobs: seedJobs,
+  announcements: seedAnnouncements,
+  links: seedLinks,
+  bonusRules: seedBonusRules,
+  departments: DEFAULT_DEPARTMENTS,
+  messages: [],
+  polls: seedPolls,
+});
+
+const loadInitial = (): PersistedState => {
+  if (typeof window === "undefined") return seedAll();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return seedAll();
+    const parsed = JSON.parse(raw);
+    return { ...seedAll(), ...parsed };
+  } catch {
+    return seedAll();
+  }
+};
+
 type Ctx = {
   users: User[];
   products: Product[];
@@ -309,6 +381,7 @@ type Ctx = {
   departments: string[];
   messages: Message[];
   cart: CartItem[];
+  polls: Poll[];
   currentUserId: string | null;
   currentUser: User | null;
   isAdmin: boolean;
@@ -348,21 +421,45 @@ type Ctx = {
   updateCartQty: (productId: string, qty: number) => void;
   clearCart: () => void;
   checkoutCart: () => { ok: boolean; message: string };
+  // polls
+  addPoll: (data: { question: string; description?: string; options: string[] }) => void;
+  updatePoll: (id: string, patch: Partial<Pick<Poll, "question" | "description" | "closed">>) => void;
+  deletePoll: (id: string) => void;
+  votePoll: (pollId: string, optionId: string) => void;
+  // data import/export
+  exportData: () => string;
+  importData: (json: string) => { ok: boolean; message: string };
+  resetData: () => void;
 };
 
 const AppCtx = createContext<Ctx | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [users, setUsers] = useState<User[]>(seedUsers);
-  const [products, setProducts] = useState<Product[]>(seedProducts);
-  const [jobs, setJobs] = useState<Job[]>(seedJobs);
-  const [announcements, setAnnouncements] = useState<Announcement[]>(seedAnnouncements);
-  const [links, setLinks] = useState<UsefulLink[]>(seedLinks);
-  const [bonusRules, setBonusRules] = useState<BonusRule[]>(seedBonusRules);
-  const [departments, setDepartments] = useState<string[]>(DEFAULT_DEPARTMENTS);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const initial = useRef<PersistedState | null>(null);
+  if (initial.current === null) initial.current = loadInitial();
+
+  const [users, setUsers] = useState<User[]>(initial.current.users);
+  const [products, setProducts] = useState<Product[]>(initial.current.products);
+  const [jobs, setJobs] = useState<Job[]>(initial.current.jobs);
+  const [announcements, setAnnouncements] = useState<Announcement[]>(initial.current.announcements);
+  const [links, setLinks] = useState<UsefulLink[]>(initial.current.links);
+  const [bonusRules, setBonusRules] = useState<BonusRule[]>(initial.current.bonusRules);
+  const [departments, setDepartments] = useState<string[]>(initial.current.departments);
+  const [messages, setMessages] = useState<Message[]>(initial.current.messages);
+  const [polls, setPolls] = useState<Poll[]>(initial.current.polls);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // Persist to localStorage on changes
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const snapshot: PersistedState = { users, products, jobs, announcements, links, bonusRules, departments, messages, polls };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+    } catch {
+      // ignore quota errors
+    }
+  }, [users, products, jobs, announcements, links, bonusRules, departments, messages, polls]);
 
   const currentUser = useMemo(
     () => users.find((u) => u.id === currentUserId) ?? null,
@@ -391,7 +488,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const value: Ctx = {
-    users, products, jobs, announcements, links, bonusRules, departments, messages, cart,
+    users, products, jobs, announcements, links, bonusRules, departments, messages, cart, polls,
     currentUserId, currentUser, isAdmin: currentUser?.role === "admin", unreadCount,
     login: (email, password) => {
       const u = users.find((x) => x.email.toLowerCase() === email.toLowerCase() && x.password === password);
@@ -473,8 +570,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addAnnouncement: ({ title, body, image }) => {
       const newA: Announcement = { id: "a-" + Math.random().toString(36).slice(2, 7), title, body, image, date: today().slice(0, 10), comments: [] };
       setAnnouncements((prev) => [newA, ...prev]);
-      // notify all users who opted-in (in-app)
-      setUsers((prev) => prev);
       users.forEach((u) => { if (u.notifyEmail) sendSystem(u.id, `📰 Новая новость: «${title}»`); });
     },
     updateAnnouncement: (id, patch) => setAnnouncements((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a))),
@@ -506,7 +601,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setMessages((p) => [...p, msg]);
       const recipient = users.find((u) => u.id === toId);
       if (recipient?.notifyEmail) {
-        // simulated email notification — would call backend in production
         console.log(`[email] notify ${recipient.email}: новое сообщение от ${users.find((u) => u.id === fromId)?.name ?? "Система"}`);
       }
     },
@@ -543,6 +637,61 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       setCart([]);
       return { ok: true, message: `Заказ оформлен! Списано ${total} бонусов.` };
+    },
+    addPoll: ({ question, description, options }) => {
+      const poll: Poll = {
+        id: "poll-" + Math.random().toString(36).slice(2, 7),
+        question, description, createdAt: today().slice(0, 10),
+        options: options.filter((o) => o.trim()).map((text, i) => ({ id: `o${i + 1}-${Math.random().toString(36).slice(2, 5)}`, text: text.trim(), votes: [] })),
+      };
+      setPolls((p) => [poll, ...p]);
+    },
+    updatePoll: (id, patch) => setPolls((p) => p.map((x) => (x.id === id ? { ...x, ...patch } : x))),
+    deletePoll: (id) => setPolls((p) => p.filter((x) => x.id !== id)),
+    votePoll: (pollId, optionId) => {
+      if (!currentUser) return;
+      const uid = currentUser.id;
+      setPolls((prev) => prev.map((p) => {
+        if (p.id !== pollId) return p;
+        return {
+          ...p,
+          options: p.options.map((o) => ({
+            ...o,
+            votes: o.id === optionId
+              ? (o.votes.includes(uid) ? o.votes : [...o.votes, uid])
+              : o.votes.filter((v) => v !== uid),
+          })),
+        };
+      }));
+    },
+    exportData: () => {
+      const snapshot: PersistedState = { users, products, jobs, announcements, links, bonusRules, departments, messages, polls };
+      return JSON.stringify(snapshot, null, 2);
+    },
+    importData: (json) => {
+      try {
+        const parsed = JSON.parse(json) as Partial<PersistedState>;
+        if (parsed.users) setUsers(parsed.users);
+        if (parsed.products) setProducts(parsed.products);
+        if (parsed.jobs) setJobs(parsed.jobs);
+        if (parsed.announcements) setAnnouncements(parsed.announcements);
+        if (parsed.links) setLinks(parsed.links);
+        if (parsed.bonusRules) setBonusRules(parsed.bonusRules);
+        if (parsed.departments) setDepartments(parsed.departments);
+        if (parsed.messages) setMessages(parsed.messages);
+        if (parsed.polls) setPolls(parsed.polls);
+        return { ok: true, message: "Данные импортированы" };
+      } catch (e) {
+        return { ok: false, message: "Неверный JSON" };
+      }
+    },
+    resetData: () => {
+      const s = seedAll();
+      setUsers(s.users); setProducts(s.products); setJobs(s.jobs);
+      setAnnouncements(s.announcements); setLinks(s.links); setBonusRules(s.bonusRules);
+      setDepartments(s.departments); setMessages(s.messages); setPolls(s.polls);
+      setCart([]);
+      if (typeof window !== "undefined") localStorage.removeItem(STORAGE_KEY);
     },
   };
 

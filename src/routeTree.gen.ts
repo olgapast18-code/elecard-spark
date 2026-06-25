@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppTeamRouteImport } from './routes/_app.team'
 import { Route as AppShopRouteImport } from './routes/_app.shop'
 import { Route as AppProfileRouteImport } from './routes/_app.profile'
+import { Route as AppPollsRouteImport } from './routes/_app.polls'
 import { Route as AppMessengerRouteImport } from './routes/_app.messenger'
 import { Route as AppLinksRouteImport } from './routes/_app.links'
 import { Route as AppJobsRouteImport } from './routes/_app.jobs'
@@ -52,6 +53,11 @@ const AppShopRoute = AppShopRouteImport.update({
 const AppProfileRoute = AppProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPollsRoute = AppPollsRouteImport.update({
+  id: '/polls',
+  path: '/polls',
   getParentRoute: () => AppRoute,
 } as any)
 const AppMessengerRoute = AppMessengerRouteImport.update({
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/jobs': typeof AppJobsRoute
   '/links': typeof AppLinksRoute
   '/messenger': typeof AppMessengerRoute
+  '/polls': typeof AppPollsRoute
   '/profile': typeof AppProfileRoute
   '/shop': typeof AppShopRoute
   '/team': typeof AppTeamRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/jobs': typeof AppJobsRoute
   '/links': typeof AppLinksRoute
   '/messenger': typeof AppMessengerRoute
+  '/polls': typeof AppPollsRoute
   '/profile': typeof AppProfileRoute
   '/shop': typeof AppShopRoute
   '/team': typeof AppTeamRoute
@@ -146,6 +154,7 @@ export interface FileRoutesById {
   '/_app/jobs': typeof AppJobsRoute
   '/_app/links': typeof AppLinksRoute
   '/_app/messenger': typeof AppMessengerRoute
+  '/_app/polls': typeof AppPollsRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/shop': typeof AppShopRoute
   '/_app/team': typeof AppTeamRoute
@@ -164,6 +173,7 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/links'
     | '/messenger'
+    | '/polls'
     | '/profile'
     | '/shop'
     | '/team'
@@ -180,6 +190,7 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/links'
     | '/messenger'
+    | '/polls'
     | '/profile'
     | '/shop'
     | '/team'
@@ -197,6 +208,7 @@ export interface FileRouteTypes {
     | '/_app/jobs'
     | '/_app/links'
     | '/_app/messenger'
+    | '/_app/polls'
     | '/_app/profile'
     | '/_app/shop'
     | '/_app/team'
@@ -250,6 +262,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/polls': {
+      id: '/_app/polls'
+      path: '/polls'
+      fullPath: '/polls'
+      preLoaderRoute: typeof AppPollsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/messenger': {
@@ -328,6 +347,7 @@ interface AppRouteChildren {
   AppJobsRoute: typeof AppJobsRoute
   AppLinksRoute: typeof AppLinksRoute
   AppMessengerRoute: typeof AppMessengerRoute
+  AppPollsRoute: typeof AppPollsRoute
   AppProfileRoute: typeof AppProfileRoute
   AppShopRoute: typeof AppShopRoute
   AppTeamRoute: typeof AppTeamRoute
@@ -343,6 +363,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppJobsRoute: AppJobsRoute,
   AppLinksRoute: AppLinksRoute,
   AppMessengerRoute: AppMessengerRoute,
+  AppPollsRoute: AppPollsRoute,
   AppProfileRoute: AppProfileRoute,
   AppShopRoute: AppShopRoute,
   AppTeamRoute: AppTeamRoute,

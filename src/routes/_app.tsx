@@ -1,11 +1,12 @@
 import { createFileRoute, Outlet, useNavigate, Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useApp } from "@/context/AppContext";
-import { LayoutDashboard, Store, BriefcaseBusiness, Users, LogOut, Rocket, Coins, ShieldCheck, UserCircle, Link2, Menu, Home, Cake, MessageSquare, Sparkles, ShoppingCart } from "lucide-react";
+import { LayoutDashboard, Store, BriefcaseBusiness, Users, LogOut, Rocket, Coins, ShieldCheck, UserCircle, Link2, Menu, Home, Cake, MessageSquare, Sparkles, ShoppingCart, ClipboardList, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { SearchDialog } from "@/components/SearchDialog";
 
 export const Route = createFileRoute("/_app")({
   component: AppLayout,
@@ -16,6 +17,18 @@ function AppLayout() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   useEffect(() => {
     if (!currentUser) navigate({ to: "/auth" });
@@ -35,6 +48,7 @@ function AppLayout() {
     { to: "/cart", label: "Корзина", icon: ShoppingCart, badge: cart.length },
     { to: "/bonuses", label: "Как заработать бонусы", icon: Sparkles, badge: 0 },
     { to: "/jobs", label: "Карта должностей", icon: BriefcaseBusiness, badge: 0 },
+    { to: "/polls", label: "Опросы", icon: ClipboardList, badge: 0 },
     { to: "/links", label: "Полезные ссылки", icon: Link2, badge: 0 },
     { to: "/profile", label: "Моя карточка", icon: UserCircle, badge: 0 },
     ...(isAdmin ? [{ to: "/admin", label: "Админ-панель", icon: ShieldCheck, badge: 0 }] : []),
@@ -51,6 +65,18 @@ function AppLayout() {
           <div className="text-[11px] text-sidebar-foreground/60">internal portal</div>
         </div>
       </div>
+
+      <div className="px-3 pt-3">
+        <button
+          onClick={() => setSearchOpen(true)}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-sidebar-accent/50 hover:bg-sidebar-accent text-sm text-sidebar-foreground/70 transition-colors"
+        >
+          <Search className="h-4 w-4" />
+          <span className="flex-1 text-left">Поиск…</span>
+          <kbd className="text-[10px] opacity-60 hidden md:inline">⌘K</kbd>
+        </button>
+      </div>
+
 
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {items.map((it) => {
@@ -125,15 +151,22 @@ function AppLayout() {
           </div>
           <span className="font-bold text-sm">ElecardSpace</span>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full bg-sidebar-primary/20 px-2.5 py-1 text-xs">
-          <Coins className="h-3.5 w-3.5 text-coin" />
-          <span className="font-semibold">{currentUser.balance}</span>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent" onClick={() => setSearchOpen(true)}>
+            <Search className="h-5 w-5" />
+          </Button>
+          <div className="flex items-center gap-1.5 rounded-full bg-sidebar-primary/20 px-2.5 py-1 text-xs">
+            <Coins className="h-3.5 w-3.5 text-coin" />
+            <span className="font-semibold">{currentUser.balance}</span>
+          </div>
         </div>
       </div>
 
       <main className="flex-1 min-w-0 overflow-x-hidden pt-14 md:pt-0">
         <Outlet />
       </main>
+
+      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
     </div>
   );
 }

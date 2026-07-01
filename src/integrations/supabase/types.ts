@@ -14,7 +14,204 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      announcements: {
+        Row: {
+          body: string | null
+          id: string
+          image: string | null
+          published_at: string
+          title: string
+        }
+        Insert: {
+          body?: string | null
+          id: string
+          image?: string | null
+          published_at?: string
+          title: string
+        }
+        Update: {
+          body?: string | null
+          id?: string
+          image?: string | null
+          published_at?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      app_snapshots: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          note: string | null
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          data: Json
+          id?: string
+          note?: string | null
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          note?: string | null
+          version?: number
+        }
+        Relationships: []
+      }
+      employees: {
+        Row: {
+          avatar: string | null
+          balance: number
+          bio: string | null
+          birthday: string | null
+          department: string | null
+          email: string
+          id: string
+          manager_id: string | null
+          name: string
+          position: string | null
+          responsibilities: Json | null
+          role: string
+          start_date: string | null
+          telegram: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar?: string | null
+          balance?: number
+          bio?: string | null
+          birthday?: string | null
+          department?: string | null
+          email: string
+          id: string
+          manager_id?: string | null
+          name: string
+          position?: string | null
+          responsibilities?: Json | null
+          role: string
+          start_date?: string | null
+          telegram?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar?: string | null
+          balance?: number
+          bio?: string | null
+          birthday?: string | null
+          department?: string | null
+          email?: string
+          id?: string
+          manager_id?: string | null
+          name?: string
+          position?: string | null
+          responsibilities?: Json | null
+          role?: string
+          start_date?: string | null
+          telegram?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      positions: {
+        Row: {
+          career_track: Json | null
+          department: string | null
+          id: string
+          kpi: Json | null
+          mission: string | null
+          responsibilities: Json | null
+          skills: Json | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          career_track?: Json | null
+          department?: string | null
+          id: string
+          kpi?: Json | null
+          mission?: string | null
+          responsibilities?: Json | null
+          skills?: Json | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          career_track?: Json | null
+          department?: string | null
+          id?: string
+          kpi?: Json | null
+          mission?: string | null
+          responsibilities?: Json | null
+          skills?: Json | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          category: string | null
+          description: string | null
+          id: string
+          image: string | null
+          name: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          description?: string | null
+          id: string
+          image?: string | null
+          name: string
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          description?: string | null
+          id?: string
+          image?: string | null
+          name?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          from_user: string | null
+          id: string
+          occurred_at: string
+          reason: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          from_user?: string | null
+          id: string
+          occurred_at?: string
+          reason?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          from_user?: string | null
+          id?: string
+          occurred_at?: string
+          reason?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

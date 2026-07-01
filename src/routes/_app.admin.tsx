@@ -1014,9 +1014,11 @@ function PollsAdmin() {
 
 /* ---------- Data export/import ---------- */
 function DataPanel() {
-  const { exportData, importData, resetData } = useApp();
+  const app = useApp();
+  const { exportData, importData, resetData, users, products, jobs, announcements } = app;
   const fileRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
+  const [busy, setBusy] = useState<string | null>(null);
 
   const download = () => {
     const json = exportData();
@@ -1044,14 +1046,50 @@ function DataPanel() {
     if (res.ok) { toast.success(res.message); setText(""); } else toast.error(res.message);
   };
 
+  const pushSnap = async () => {
+    setBusy("snapshot");
+    try {
+      const { pushSnapshot } = await import("@/lib/cloudSync");
+      await pushSnapshot(exportData(), `manual @ ${new Date().toLocaleString("ru-RU")}`);
+      toast.success("Снапшот сохранён в облачной БД");
+    } catch (e) { toast.error("Ошибка: " + (e as Error).message); }
+    finally { setBusy(null); }
+  };
+
+  const pullSnap = async () => {
+    setBusy("pull");
+    try {
+      const { fetchLatestSnapshot } = await import("@/lib/cloudSync");
+      const snap = await fetchLatestSnapshot();
+      if (!snap) { toast.info("В облачной БД пока нет снапшотов"); return; }
+      const res = importData(snap);
+      if (res.ok) toast.success("Данные загружены из облака"); else toast.error(res.message);
+    } catch (e) { toast.error("Ошибка: " + (e as Error).message); }
+    finally { setBusy(null); }
+  };
+
+  const syncTables = async () => {
+    setBusy("tables");
+    try {
+      const { syncNormalizedTables } = await import("@/lib/cloudSync");
+      const r = await syncNormalizedTables({ users, products, jobs, announcements });
+      toast.success(`Синхронизировано: ${r.employees} сотр., ${r.products} тов., ${r.transactions} тр., ${r.announcements} нов., ${r.positions} должн.`);
+    } catch (e) { toast.error("Ошибка: " + (e as Error).message); }
+    finally { setBusy(null); }
+  };
+
+  const restUrl = import.meta.env.VITE_SUPABASE_URL;
+  const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const copy = (t: string) => { navigator.clipboard.writeText(t); toast.success("Скопировано"); };
+
   return (
     <div className="grid lg:grid-cols-2 gap-6">
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><Database className="h-5 w-5 text-brand" /> Резервная копия и интеграции</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2"><Database className="h-5 w-5 text-brand" /> Локальная резервная копия</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Все изменения автоматически сохраняются в локальное хранилище браузера. Для переноса данных
-            во внешнюю базу скачайте JSON-файл и загрузите его в свою систему через стандартный API/импорт.
+            Все изменения автосохраняются в браузере. Для переноса скачайте JSON или используйте
+            облачную базу ниже.
           </p>
           <div className="flex flex-wrap gap-2">
             <Button onClick={download}><Download className="h-4 w-4 mr-2" /> Скачать JSON</Button>
@@ -1061,21 +1099,56 @@ function DataPanel() {
               <RefreshCw className="h-4 w-4 mr-2" /> Сброс
             </Button>
           </div>
-          <div className="rounded-lg bg-muted/40 p-3 text-xs space-y-1">
-            <div className="font-semibold">Что попадает в выгрузку:</div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-brand/40">
+        <CardHeader><CardTitle className="flex items-center gap-2"><Database className="h-5 w-5 text-brand" /> Облачная база данных</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Портал подключён к облачной БД. Сохраняйте состояние целиком (снапшот) или
+            выгружайте в нормализованные таблицы для сторонних сервисов (BI, HRIS, дашборды).
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={pushSnap} disabled={!!busy}>
+              <Upload className="h-4 w-4 mr-2" /> {busy === "snapshot" ? "Сохраняю…" : "Отправить снапшот"}
+            </Button>
+            <Button variant="outline" onClick={pullSnap} disabled={!!busy}>
+              <Download className="h-4 w-4 mr-2" /> {busy === "pull" ? "Загружаю…" : "Загрузить из облака"}
+            </Button>
+            <Button variant="secondary" onClick={syncTables} disabled={!!busy}>
+              <RefreshCw className="h-4 w-4 mr-2" /> {busy === "tables" ? "Синхронизирую…" : "Синхронизировать таблицы"}
+            </Button>
+          </div>
+          <div className="rounded-lg bg-muted/40 p-3 text-xs space-y-2">
+            <div className="font-semibold">Интеграция со сторонними сервисами</div>
+            <p className="text-muted-foreground">REST API endpoint:</p>
+            <div className="flex gap-2 items-center">
+              <code className="flex-1 truncate bg-background px-2 py-1 rounded border text-[11px]">{restUrl}/rest/v1/employees</code>
+              <Button size="sm" variant="ghost" onClick={() => copy(`${restUrl}/rest/v1/employees`)}>Copy</Button>
+            </div>
+            <p className="text-muted-foreground pt-1">Публичный ключ (заголовок <code>apikey</code>):</p>
+            <div className="flex gap-2 items-center">
+              <code className="flex-1 truncate bg-background px-2 py-1 rounded border text-[11px]">{apiKey?.slice(0, 40)}…</code>
+              <Button size="sm" variant="ghost" onClick={() => copy(apiKey)}>Copy</Button>
+            </div>
+            <div className="pt-2 font-semibold">Таблицы:</div>
             <ul className="list-disc pl-4 space-y-0.5 text-muted-foreground">
-              <li>Сотрудники, отделы, должности, структура подчинения</li>
-              <li>Новости и комментарии, полезные ссылки, правила бонусов</li>
-              <li>Транзакции, опросы и сообщения мессенджера</li>
+              <li><code>employees</code> — сотрудники и баланс</li>
+              <li><code>products</code> — товары магазина</li>
+              <li><code>transactions</code> — история бонусов</li>
+              <li><code>announcements</code> — новости</li>
+              <li><code>positions</code> — карта должностей</li>
+              <li><code>app_snapshots</code> — полные JSON-снимки</li>
             </ul>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="lg:col-span-2">
         <CardHeader><CardTitle>Импорт JSON напрямую</CardTitle></CardHeader>
         <CardContent className="space-y-3">
-          <Textarea rows={12} value={text} onChange={(e) => setText(e.target.value)} placeholder='{"users": [...], "products": [...]}' className="font-mono text-xs" />
+          <Textarea rows={8} value={text} onChange={(e) => setText(e.target.value)} placeholder='{"users": [...], "products": [...]}' className="font-mono text-xs" />
           <Button className="w-full" onClick={applyText} disabled={!text.trim()}>Применить</Button>
         </CardContent>
       </Card>

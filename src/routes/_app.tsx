@@ -1,12 +1,13 @@
 import { createFileRoute, Outlet, useNavigate, Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useApp } from "@/context/AppContext";
-import { LayoutDashboard, Store, BriefcaseBusiness, Users, LogOut, Rocket, Coins, ShieldCheck, UserCircle, Link2, Menu, Home, Cake, MessageSquare, Sparkles, ShoppingCart, ClipboardList, Search } from "lucide-react";
+import { LayoutDashboard, Store, BriefcaseBusiness, Users, LogOut, Coins, ShieldCheck, UserCircle, Link2, Menu, Home, Cake, MessageSquare, Sparkles, ShoppingCart, ClipboardList, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { SearchDialog } from "@/components/SearchDialog";
+import elecardLogo from "@/assets/elecard-logo.jpg.asset.json";
 
 export const Route = createFileRoute("/_app")({
   component: AppLayout,
@@ -57,8 +58,8 @@ function AppLayout() {
   const SidebarContent = () => (
     <div className="h-full flex flex-col bg-sidebar text-sidebar-foreground">
       <div className="px-5 py-5 flex items-center gap-3 border-b border-sidebar-border">
-        <div className="h-9 w-9 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground grid place-items-center">
-          <Rocket className="h-5 w-5" />
+        <div className="h-10 w-10 rounded-lg bg-white grid place-items-center overflow-hidden shrink-0 p-1">
+          <img src={elecardLogo.url} alt="Elecard" className="max-h-full max-w-full object-contain" />
         </div>
         <div>
           <div className="font-bold leading-tight">ElecardSpace</div>
@@ -146,8 +147,8 @@ function AppLayout() {
           </SheetContent>
         </Sheet>
         <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-md bg-sidebar-primary text-sidebar-primary-foreground grid place-items-center">
-            <Rocket className="h-4 w-4" />
+          <div className="h-8 w-8 rounded-md bg-white grid place-items-center overflow-hidden p-0.5">
+            <img src={elecardLogo.url} alt="Elecard" className="max-h-full max-w-full object-contain" />
           </div>
           <span className="font-bold text-sm">ElecardSpace</span>
         </div>

@@ -1078,6 +1078,48 @@ function DataPanel() {
     finally { setBusy(null); }
   };
 
+  const syncIncr = async () => {
+    setBusy("incr");
+    try {
+      const { syncIncremental } = await import("@/lib/cloudSync");
+      const r = await syncIncremental({ users, products, jobs, announcements });
+      if (r.totalChanges === 0) toast.info("Изменений с прошлой синхронизации нет");
+      else toast.success(
+        `Изменений: ${r.totalChanges} · сотр. +${r.employees.upserted}/-${r.employees.deleted}, тов. +${r.products.upserted}/-${r.products.deleted}, тр. +${r.transactions.upserted}/-${r.transactions.deleted}, нов. +${r.announcements.upserted}/-${r.announcements.deleted}, должн. +${r.positions.upserted}/-${r.positions.deleted}`,
+      );
+    } catch (e) { toast.error("Ошибка: " + (e as Error).message); }
+    finally { setBusy(null); }
+  };
+
+  const resetIncr = async () => {
+    const { resetIncrementalState } = await import("@/lib/cloudSync");
+    resetIncrementalState();
+    toast.success("Состояние инкрементальной синхронизации сброшено — следующая синхронизация выгрузит все записи");
+  };
+
+  const downloadFile = (name: string, content: string, mime: string) => {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadSchemaSql = async () => {
+    const { SCHEMA_SQL } = await import("@/lib/cloudSync");
+    downloadFile(`elecard-schema-${new Date().toISOString().slice(0, 10)}.sql`, SCHEMA_SQL, "application/sql");
+    toast.success("Схема таблиц (SQL) скачана");
+  };
+
+  const downloadSchemaJson = async () => {
+    const { SCHEMA_JSON } = await import("@/lib/cloudSync");
+    downloadFile(`elecard-schema-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(SCHEMA_JSON, null, 2), "application/json");
+    toast.success("Схема таблиц (JSON) скачана");
+  };
+
+
   const restUrl = import.meta.env.VITE_SUPABASE_URL;
   const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
   const copy = (t: string) => { navigator.clipboard.writeText(t); toast.success("Скопировано"); };
@@ -1117,9 +1159,30 @@ function DataPanel() {
               <Download className="h-4 w-4 mr-2" /> {busy === "pull" ? "Загружаю…" : "Загрузить из облака"}
             </Button>
             <Button variant="secondary" onClick={syncTables} disabled={!!busy}>
-              <RefreshCw className="h-4 w-4 mr-2" /> {busy === "tables" ? "Синхронизирую…" : "Синхронизировать таблицы"}
+              <RefreshCw className="h-4 w-4 mr-2" /> {busy === "tables" ? "Синхронизирую…" : "Полная синхронизация"}
+            </Button>
+            <Button variant="default" className="bg-brand hover:bg-brand/90" onClick={syncIncr} disabled={!!busy}>
+              <RefreshCw className="h-4 w-4 mr-2" /> {busy === "incr" ? "Синхронизирую…" : "Инкрементальная синхронизация"}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={resetIncr} disabled={!!busy}>
+              Сбросить состояние
             </Button>
           </div>
+          <div className="border-t pt-3">
+            <div className="text-sm font-semibold mb-2">Экспорт схемы таблиц</div>
+            <p className="text-xs text-muted-foreground mb-2">
+              Готовые DDL-скрипты для быстрого разворачивания копии базы в стороннем хранилище.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" onClick={downloadSchemaSql}>
+                <Download className="h-4 w-4 mr-2" /> Скачать SQL (DDL)
+              </Button>
+              <Button size="sm" variant="outline" onClick={downloadSchemaJson}>
+                <Download className="h-4 w-4 mr-2" /> Скачать JSON-схему
+              </Button>
+            </div>
+          </div>
+
           <div className="rounded-lg bg-muted/40 p-3 text-xs space-y-2">
             <div className="font-semibold">Интеграция со сторонними сервисами</div>
             <p className="text-muted-foreground">REST API endpoint:</p>

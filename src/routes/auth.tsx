@@ -45,8 +45,8 @@ function AuthPage() {
       <div className="w-full max-w-5xl grid md:grid-cols-2 gap-8 items-center">
         <div className="hidden md:block space-y-6 pr-6">
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-xl bg-brand text-brand-foreground grid place-items-center shadow-lg">
-              <Rocket className="h-6 w-6" />
+            <div className="h-14 w-24 rounded-xl bg-white grid place-items-center shadow-lg p-2">
+              <img src={elecardLogo.url} alt="Elecard" className="max-h-full max-w-full object-contain" />
             </div>
             <div>
               <div className="text-2xl font-bold tracking-tight">ElecardSpace</div>

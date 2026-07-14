@@ -1159,9 +1159,30 @@ function DataPanel() {
               <Download className="h-4 w-4 mr-2" /> {busy === "pull" ? "Загружаю…" : "Загрузить из облака"}
             </Button>
             <Button variant="secondary" onClick={syncTables} disabled={!!busy}>
-              <RefreshCw className="h-4 w-4 mr-2" /> {busy === "tables" ? "Синхронизирую…" : "Синхронизировать таблицы"}
+              <RefreshCw className="h-4 w-4 mr-2" /> {busy === "tables" ? "Синхронизирую…" : "Полная синхронизация"}
+            </Button>
+            <Button variant="default" className="bg-brand hover:bg-brand/90" onClick={syncIncr} disabled={!!busy}>
+              <RefreshCw className="h-4 w-4 mr-2" /> {busy === "incr" ? "Синхронизирую…" : "Инкрементальная синхронизация"}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={resetIncr} disabled={!!busy}>
+              Сбросить состояние
             </Button>
           </div>
+          <div className="border-t pt-3">
+            <div className="text-sm font-semibold mb-2">Экспорт схемы таблиц</div>
+            <p className="text-xs text-muted-foreground mb-2">
+              Готовые DDL-скрипты для быстрого разворачивания копии базы в стороннем хранилище.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" onClick={downloadSchemaSql}>
+                <Download className="h-4 w-4 mr-2" /> Скачать SQL (DDL)
+              </Button>
+              <Button size="sm" variant="outline" onClick={downloadSchemaJson}>
+                <Download className="h-4 w-4 mr-2" /> Скачать JSON-схему
+              </Button>
+            </div>
+          </div>
+
           <div className="rounded-lg bg-muted/40 p-3 text-xs space-y-2">
             <div className="font-semibold">Интеграция со сторонними сервисами</div>
             <p className="text-muted-foreground">REST API endpoint:</p>

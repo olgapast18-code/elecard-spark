@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { SearchDialog } from "@/components/SearchDialog";
+import elecardLogo from "@/assets/elecard-logo.jpg.asset.json";
 
 export const Route = createFileRoute("/_app")({
   component: AppLayout,

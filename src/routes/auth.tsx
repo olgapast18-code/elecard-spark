@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Rocket } from "lucide-react";
 import { toast } from "sonner";
+import elecardLogo from "@/assets/elecard-logo.jpg.asset.json";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,

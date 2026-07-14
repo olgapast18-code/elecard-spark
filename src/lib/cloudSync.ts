@@ -190,37 +190,77 @@ export async function syncIncremental(p: SyncPayload): Promise<IncrementalResult
   const prev = loadHashes();
   const next: HashMap = { ...prev };
 
-  type TableName = "employees" | "products" | "transactions" | "announcements" | "positions";
-  const plan = [
-    { table: "employees" as TableName, rows: buildEmployeeRows(p.users) },
-    { table: "products" as TableName, rows: buildProductRows(p.products) },
-    { table: "transactions" as TableName, rows: buildTransactionRows(p.users) },
-    { table: "announcements" as TableName, rows: buildAnnouncementRows(p.announcements) },
-    { table: "positions" as TableName, rows: buildPositionRows(p.jobs) },
-  ];
+  const employeeDiff = diffTable("employees", buildEmployeeRows(p.users), prev);
+  const productDiff = diffTable("products", buildProductRows(p.products), prev);
+  const transactionDiff = diffTable("transactions", buildTransactionRows(p.users), prev);
+  const announcementDiff = diffTable("announcements", buildAnnouncementRows(p.announcements), prev);
+  const positionDiff = diffTable("positions", buildPositionRows(p.jobs), prev);
 
-  const summary: Record<string, { upserted: number; deleted: number }> = {};
   const errors: string[] = [];
 
-  for (const { table, rows } of plan) {
-    const { upserts, deletes, nextHashes } = diffTable(table, rows, prev);
-    summary[table] = { upserted: upserts.length, deleted: deletes.length };
-    if (upserts.length) {
-      const { error } = await supabase.from(table).upsert(upserts);
-      if (error) errors.push(`${table} upsert: ${error.message}`);
-    }
-    if (deletes.length) {
-      const { error } = await supabase.from(table).delete().in("id", deletes);
-      if (error) errors.push(`${table} delete: ${error.message}`);
-    }
-    next[table] = nextHashes;
+  if (employeeDiff.upserts.length) {
+    const { error } = await supabase.from("employees").upsert(employeeDiff.upserts);
+    if (error) errors.push(`employees upsert: ${error.message}`);
   }
+  if (employeeDiff.deletes.length) {
+    const { error } = await supabase.from("employees").delete().in("id", employeeDiff.deletes);
+    if (error) errors.push(`employees delete: ${error.message}`);
+  }
+
+  if (productDiff.upserts.length) {
+    const { error } = await supabase.from("products").upsert(productDiff.upserts);
+    if (error) errors.push(`products upsert: ${error.message}`);
+  }
+  if (productDiff.deletes.length) {
+    const { error } = await supabase.from("products").delete().in("id", productDiff.deletes);
+    if (error) errors.push(`products delete: ${error.message}`);
+  }
+
+  if (transactionDiff.upserts.length) {
+    const { error } = await supabase.from("transactions").upsert(transactionDiff.upserts);
+    if (error) errors.push(`transactions upsert: ${error.message}`);
+  }
+  if (transactionDiff.deletes.length) {
+    const { error } = await supabase.from("transactions").delete().in("id", transactionDiff.deletes);
+    if (error) errors.push(`transactions delete: ${error.message}`);
+  }
+
+  if (announcementDiff.upserts.length) {
+    const { error } = await supabase.from("announcements").upsert(announcementDiff.upserts);
+    if (error) errors.push(`announcements upsert: ${error.message}`);
+  }
+  if (announcementDiff.deletes.length) {
+    const { error } = await supabase.from("announcements").delete().in("id", announcementDiff.deletes);
+    if (error) errors.push(`announcements delete: ${error.message}`);
+  }
+
+  if (positionDiff.upserts.length) {
+    const { error } = await supabase.from("positions").upsert(positionDiff.upserts);
+    if (error) errors.push(`positions upsert: ${error.message}`);
+  }
+  if (positionDiff.deletes.length) {
+    const { error } = await supabase.from("positions").delete().in("id", positionDiff.deletes);
+    if (error) errors.push(`positions delete: ${error.message}`);
+  }
+
+  next.employees = employeeDiff.nextHashes;
+  next.products = productDiff.nextHashes;
+  next.transactions = transactionDiff.nextHashes;
+  next.announcements = announcementDiff.nextHashes;
+  next.positions = positionDiff.nextHashes;
 
   if (errors.length) throw new Error(errors.join("; "));
   saveHashes(next);
 
+  const summary = {
+    employees: { upserted: employeeDiff.upserts.length, deleted: employeeDiff.deletes.length },
+    products: { upserted: productDiff.upserts.length, deleted: productDiff.deletes.length },
+    transactions: { upserted: transactionDiff.upserts.length, deleted: transactionDiff.deletes.length },
+    announcements: { upserted: announcementDiff.upserts.length, deleted: announcementDiff.deletes.length },
+    positions: { upserted: positionDiff.upserts.length, deleted: positionDiff.deletes.length },
+  };
   const totalChanges = Object.values(summary).reduce((s, x) => s + x.upserted + x.deleted, 0);
-  return { ...(summary as Omit<IncrementalResult, "totalChanges">), totalChanges };
+  return { ...summary, totalChanges };
 }
 
 export function resetIncrementalState() {

@@ -463,6 +463,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [users, products, jobs, announcements, links, bonusRules, departments, messages, polls]);
 
+  // Auto-sync to cloud (debounced): incremental table sync + periodic JSON snapshot.
+  const lastSnapshotAt = useRef<number>(0);
+  const firstAutoSync = useRef(true);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (firstAutoSync.current) { firstAutoSync.current = false; return; }
+    const t = setTimeout(async () => {
+      try {
+        await syncIncremental({ users, products, jobs: jobs, announcements });
+        const now = Date.now();
+        if (now - lastSnapshotAt.current > 5 * 60 * 1000) {
+          lastSnapshotAt.current = now;
+          const snap: PersistedState = { users, products, jobs, announcements, links, bonusRules, departments, messages, polls };
+          await pushSnapshot(JSON.stringify(snap), "auto");
+        }
+      } catch (e) {
+        console.warn("[auto-sync] failed", e);
+      }
+    }, 4000);
+    return () => clearTimeout(t);
+  }, [users, products, jobs, announcements, links, bonusRules, departments, messages, polls]);
+
   const currentUser = useMemo(
     () => users.find((u) => u.id === currentUserId) ?? null,
     [users, currentUserId],

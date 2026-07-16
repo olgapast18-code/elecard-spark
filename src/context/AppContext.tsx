@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useMemo, useEffect, useRef, type ReactNode } from "react";
+import { syncIncremental, pushSnapshot } from "@/lib/cloudSync";
 
 export type Role = "admin" | "employee";
 

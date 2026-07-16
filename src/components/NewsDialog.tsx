@@ -42,9 +42,18 @@ export function NewsDialog({ announcement, open, onOpenChange }: {
                 <li key={c.id} className="flex gap-2 text-sm bg-muted/40 rounded-lg p-2">
                   <img src={c.authorAvatar} className="h-8 w-8 rounded-full object-cover aspect-square shrink-0" alt="" />
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs">
+                    <div className="text-xs flex items-center gap-2">
                       <span className="font-medium">{c.authorName}</span>
                       <span className="text-muted-foreground"> · {new Date(c.date).toLocaleString("ru-RU")}</span>
+                      {isAdmin && (
+                        <button
+                          onClick={() => deleteComment(announcement.id, c.id)}
+                          className="ml-auto text-muted-foreground hover:text-destructive"
+                          aria-label="Удалить комментарий"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </div>
                     <div className="text-sm whitespace-pre-wrap break-words">{c.body}</div>
                   </div>

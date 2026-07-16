@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useMemo, useEffect, useRef, type ReactNode } from "react";
+import { syncIncremental, pushSnapshot } from "@/lib/cloudSync";
 
 export type Role = "admin" | "employee";
 
@@ -402,6 +403,7 @@ type Ctx = {
   addProduct: (p: Omit<Product, "id">) => void;
   deleteProduct: (id: string) => void;
   addComment: (announcementId: string, body: string) => void;
+  deleteComment: (announcementId: string, commentId: string) => void;
   addAnnouncement: (data: { title: string; body: string; image?: string }) => void;
   updateAnnouncement: (id: string, patch: Partial<Pick<Announcement, "title" | "body" | "image">>) => void;
   deleteAnnouncement: (id: string) => void;
@@ -459,6 +461,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } catch {
       // ignore quota errors
     }
+  }, [users, products, jobs, announcements, links, bonusRules, departments, messages, polls]);
+
+  // Auto-sync to cloud (debounced): incremental table sync + periodic JSON snapshot.
+  const lastSnapshotAt = useRef<number>(0);
+  const firstAutoSync = useRef(true);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (firstAutoSync.current) { firstAutoSync.current = false; return; }
+    const t = setTimeout(async () => {
+      try {
+        await syncIncremental({ users, products, jobs: jobs, announcements });
+        const now = Date.now();
+        if (now - lastSnapshotAt.current > 5 * 60 * 1000) {
+          lastSnapshotAt.current = now;
+          const snap: PersistedState = { users, products, jobs, announcements, links, bonusRules, departments, messages, polls };
+          await pushSnapshot(JSON.stringify(snap), "auto");
+        }
+      } catch (e) {
+        console.warn("[auto-sync] failed", e);
+      }
+    }, 4000);
+    return () => clearTimeout(t);
   }, [users, products, jobs, announcements, links, bonusRules, departments, messages, polls]);
 
   const currentUser = useMemo(
@@ -567,6 +591,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
       setAnnouncements((prev) => prev.map((a) => (a.id === announcementId ? { ...a, comments: [...a.comments, c] } : a)));
     },
+    deleteComment: (announcementId, commentId) => {
+      setAnnouncements((prev) => prev.map((a) => (a.id === announcementId ? { ...a, comments: a.comments.filter((c) => c.id !== commentId) } : a)));
+    },
     addAnnouncement: ({ title, body, image }) => {
       const newA: Announcement = { id: "a-" + Math.random().toString(36).slice(2, 7), title, body, image, date: today().slice(0, 10), comments: [] };
       setAnnouncements((prev) => [newA, ...prev]);
@@ -585,10 +612,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const n = newName.trim(); if (!n) return;
       setDepartments((p) => p.map((d) => (d === oldName ? n : d)));
       setUsers((p) => p.map((u) => (u.department === oldName ? { ...u, department: n } : u)));
+      setJobs((p) => p.map((j) => (j.department === oldName ? { ...j, department: n } : j)));
     },
     deleteDepartment: (name) => {
       if (users.some((u) => u.department === name)) return;
       setDepartments((p) => p.filter((d) => d !== name));
+      setJobs((p) => p.filter((j) => j.department !== name));
     },
     sendMessage: (toId, body, attachments = [], opts) => {
       const fromId = opts?.fromId ?? currentUser?.id;

@@ -3,7 +3,7 @@ import { useApp, type Announcement } from "@/context/AppContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageSquare, Send } from "lucide-react";
+import { MessageSquare, Send, Trash2 } from "lucide-react";
 import { EmojiPicker } from "@/components/EmojiPicker";
 
 export function NewsDialog({ announcement, open, onOpenChange }: {
@@ -11,7 +11,7 @@ export function NewsDialog({ announcement, open, onOpenChange }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { currentUser, addComment } = useApp();
+  const { currentUser, addComment, deleteComment, isAdmin } = useApp();
   const [draft, setDraft] = useState("");
 
   if (!announcement) return null;

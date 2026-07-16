@@ -568,6 +568,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
       setAnnouncements((prev) => prev.map((a) => (a.id === announcementId ? { ...a, comments: [...a.comments, c] } : a)));
     },
+    deleteComment: (announcementId, commentId) => {
+      setAnnouncements((prev) => prev.map((a) => (a.id === announcementId ? { ...a, comments: a.comments.filter((c) => c.id !== commentId) } : a)));
+    },
     addAnnouncement: ({ title, body, image }) => {
       const newA: Announcement = { id: "a-" + Math.random().toString(36).slice(2, 7), title, body, image, date: today().slice(0, 10), comments: [] };
       setAnnouncements((prev) => [newA, ...prev]);

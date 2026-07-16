@@ -146,8 +146,8 @@ function AppLayout() {
           </SheetContent>
         </Sheet>
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-md bg-white grid place-items-center overflow-hidden p-0.5">
-            <img src={elecardLogo.url} alt="Elecard" className="max-h-full max-w-full object-contain" />
+          <div className="h-8 w-8 rounded-md bg-gradient-to-br from-brand to-brand/70 grid place-items-center">
+            <Rocket className="h-4 w-4 text-white" />
           </div>
           <span className="font-bold text-sm">ElecardSpace</span>
         </div>

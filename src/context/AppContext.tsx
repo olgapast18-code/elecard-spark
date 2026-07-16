@@ -402,6 +402,7 @@ type Ctx = {
   addProduct: (p: Omit<Product, "id">) => void;
   deleteProduct: (id: string) => void;
   addComment: (announcementId: string, body: string) => void;
+  deleteComment: (announcementId: string, commentId: string) => void;
   addAnnouncement: (data: { title: string; body: string; image?: string }) => void;
   updateAnnouncement: (id: string, patch: Partial<Pick<Announcement, "title" | "body" | "image">>) => void;
   deleteAnnouncement: (id: string) => void;

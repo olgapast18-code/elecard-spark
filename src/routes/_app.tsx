@@ -57,8 +57,8 @@ function AppLayout() {
   const SidebarContent = () => (
     <div className="h-full flex flex-col bg-sidebar text-sidebar-foreground">
       <div className="px-5 py-5 flex items-center gap-3 border-b border-sidebar-border">
-        <div className="h-10 w-10 rounded-lg bg-white grid place-items-center overflow-hidden shrink-0 p-1">
-          <img src={elecardLogo.url} alt="Elecard" className="max-h-full max-w-full object-contain" />
+        <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-brand to-brand/70 grid place-items-center shadow shrink-0">
+          <Rocket className="h-5 w-5 text-white" />
         </div>
         <div>
           <div className="font-bold leading-tight">ElecardSpace</div>

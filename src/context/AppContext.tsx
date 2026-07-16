@@ -589,10 +589,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const n = newName.trim(); if (!n) return;
       setDepartments((p) => p.map((d) => (d === oldName ? n : d)));
       setUsers((p) => p.map((u) => (u.department === oldName ? { ...u, department: n } : u)));
+      setJobs((p) => p.map((j) => (j.department === oldName ? { ...j, department: n } : j)));
     },
     deleteDepartment: (name) => {
       if (users.some((u) => u.department === name)) return;
       setDepartments((p) => p.filter((d) => d !== name));
+      setJobs((p) => p.filter((j) => j.department !== name));
     },
     sendMessage: (toId, body, attachments = [], opts) => {
       const fromId = opts?.fromId ?? currentUser?.id;

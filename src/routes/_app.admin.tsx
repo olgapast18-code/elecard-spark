@@ -78,10 +78,10 @@ function AdminPage() {
 
 /* ---------- Employees ---------- */
 function EmployeesPanel() {
-  const { users, updateUser, addUser, deleteUser } = useApp();
+  const { users, updateUser, addUser, deleteUser, departments } = useApp();
   const [open, setOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const empty = { name: "", email: "", password: "", department: DEPARTMENTS[0], position: "", balance: 100, avatar: "" };
+  const empty = { name: "", email: "", password: "", department: departments[0] ?? "", position: "", balance: 100, avatar: "" };
   const [newU, setNewU] = useState(empty);
 
   const onFile = (f: File) => {

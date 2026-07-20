@@ -160,7 +160,7 @@ function EmployeesPanel() {
 }
 
 function EmployeeRow({ user, onSave, onDelete }: { user: User; onSave: (p: Partial<User>) => void; onDelete: () => void }) {
-  const { users } = useApp();
+  const { users, departments } = useApp();
   const [open, setOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const fresh = () => ({

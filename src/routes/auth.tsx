@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useApp, DEPARTMENTS } from "@/context/AppContext";
+import { useApp } from "@/context/AppContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,13 +15,13 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const { login, register } = useApp();
+  const { login, register, departments } = useApp();
   const navigate = useNavigate();
 
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPass, setLoginPass] = useState("");
 
-  const [form, setForm] = useState({ name: "", email: "", password: "", department: DEPARTMENTS[0], position: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", department: departments[0] ?? "", position: "" });
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,7 +103,7 @@ function AuthPage() {
                       <Select value={form.department} onValueChange={(v) => setForm({ ...form, department: v })}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          {DEPARTMENTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                          {departments.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </div>

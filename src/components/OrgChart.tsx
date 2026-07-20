@@ -12,7 +12,7 @@ export function OrgChart({ onSelect }: { onSelect: (u: User) => void }) {
   return (
     <div className="space-y-1">
       {roots.map((r) => (
-        <TreeNode key={r.id} user={r} onSelect={onSelect} depth={0} defaultOpen />
+        <TreeNode key={r.id} user={r} onSelect={onSelect} depth={0} />
       ))}
     </div>
   );

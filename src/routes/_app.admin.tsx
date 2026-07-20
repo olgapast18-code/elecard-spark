@@ -78,10 +78,10 @@ function AdminPage() {
 
 /* ---------- Employees ---------- */
 function EmployeesPanel() {
-  const { users, updateUser, addUser, deleteUser } = useApp();
+  const { users, updateUser, addUser, deleteUser, departments } = useApp();
   const [open, setOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const empty = { name: "", email: "", password: "", department: DEPARTMENTS[0], position: "", balance: 100, avatar: "" };
+  const empty = { name: "", email: "", password: "", department: departments[0] ?? "", position: "", balance: 100, avatar: "" };
   const [newU, setNewU] = useState(empty);
 
   const onFile = (f: File) => {
@@ -114,7 +114,7 @@ function EmployeesPanel() {
                 <Field label="Отдел">
                   <Select value={newU.department} onValueChange={(v) => setNewU({ ...newU, department: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{DEPARTMENTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                    <SelectContent>{departments.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
                   </Select>
                 </Field>
                 <Field label="Должность"><Input value={newU.position} onChange={(e) => setNewU({ ...newU, position: e.target.value })} /></Field>
@@ -160,7 +160,7 @@ function EmployeesPanel() {
 }
 
 function EmployeeRow({ user, onSave, onDelete }: { user: User; onSave: (p: Partial<User>) => void; onDelete: () => void }) {
-  const { users } = useApp();
+  const { users, departments } = useApp();
   const [open, setOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const fresh = () => ({
@@ -203,7 +203,7 @@ function EmployeeRow({ user, onSave, onDelete }: { user: User; onSave: (p: Parti
               <Field label="Отдел">
                 <Select value={draft.department} onValueChange={(v) => setDraft({ ...draft, department: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{DEPARTMENTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                  <SelectContent>{departments.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
                 </Select>
               </Field>
               <Field label="Руководитель">
@@ -399,10 +399,17 @@ function NewsItem({ a, onSave, onDelete }: { a: Announcement; onSave: (p: { titl
 
 /* ---------- Grant ---------- */
 function GrantPanel({ users, onGrant }: { users: User[]; onGrant: (uid: string, amt: number, reason: string) => void }) {
+  const { bonusRules } = useApp();
   const [uid, setUid] = useState<string>(users[0]?.id ?? "");
-  const [amount, setAmount] = useState(50);
-  const [reason, setReason] = useState("Успешное закрытие спринта");
-  const presets = ["Успешное закрытие спринта", "За помощь в организации мероприятия", "Менторинг", "Инициатива квартала"];
+  const [ruleId, setRuleId] = useState<string>(bonusRules[0]?.id ?? "");
+  const [amount, setAmount] = useState<number>(bonusRules[0]?.amount ?? 50);
+  const [reason, setReason] = useState<string>(bonusRules[0]?.title ?? "");
+
+  const onRuleChange = (id: string) => {
+    setRuleId(id);
+    const r = bonusRules.find((b) => b.id === id);
+    if (r) { setReason(r.title); setAmount(r.amount); }
+  };
 
   return (
     <div className="grid lg:grid-cols-[1fr_360px] gap-6">
@@ -415,13 +422,22 @@ function GrantPanel({ users, onGrant }: { users: User[]; onGrant: (uid: string, 
               <SelectContent>{users.map((u) => <SelectItem key={u.id} value={u.id}>{u.name} — {u.position}</SelectItem>)}</SelectContent>
             </Select>
           </Field>
+          <Field label="Причина (из раздела «Как заработать бонусы»)">
+            {bonusRules.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Добавьте правила во вкладке «Как заработать».</p>
+            ) : (
+              <Select value={ruleId} onValueChange={onRuleChange}>
+                <SelectTrigger><SelectValue placeholder="Выберите правило" /></SelectTrigger>
+                <SelectContent>
+                  {bonusRules.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>{b.title} · +{b.amount}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
           <Field label="Сумма"><Input type="number" value={amount} onChange={(e) => setAmount(+e.target.value)} /></Field>
-          <Field label="Причина"><Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} /></Field>
-          <div className="flex flex-wrap gap-2">
-            {presets.map((p) => (
-              <button key={p} onClick={() => setReason(p)} className="text-xs rounded-full border bg-card hover:bg-accent px-3 py-1">{p}</button>
-            ))}
-          </div>
+          <Field label="Комментарий"><Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} /></Field>
           <Button className="w-full" onClick={() => {
             if (!uid || amount <= 0 || !reason) return toast.error("Заполните все поля");
             onGrant(uid, amount, reason);

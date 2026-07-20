@@ -203,7 +203,7 @@ function EmployeeRow({ user, onSave, onDelete }: { user: User; onSave: (p: Parti
               <Field label="Отдел">
                 <Select value={draft.department} onValueChange={(v) => setDraft({ ...draft, department: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{DEPARTMENTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                  <SelectContent>{departments.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
                 </Select>
               </Field>
               <Field label="Руководитель">

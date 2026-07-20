@@ -15,13 +15,13 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const { login, register } = useApp();
+  const { login, register, departments } = useApp();
   const navigate = useNavigate();
 
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPass, setLoginPass] = useState("");
 
-  const [form, setForm] = useState({ name: "", email: "", password: "", department: DEPARTMENTS[0], position: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", department: departments[0] ?? "", position: "" });
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();

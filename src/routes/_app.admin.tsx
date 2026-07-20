@@ -114,7 +114,7 @@ function EmployeesPanel() {
                 <Field label="Отдел">
                   <Select value={newU.department} onValueChange={(v) => setNewU({ ...newU, department: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{DEPARTMENTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                    <SelectContent>{departments.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
                   </Select>
                 </Field>
                 <Field label="Должность"><Input value={newU.position} onChange={(e) => setNewU({ ...newU, position: e.target.value })} /></Field>
